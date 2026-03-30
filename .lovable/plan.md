@@ -1,94 +1,35 @@
 
 
-## Supplier-Based Materials System — Production Build
+## Diagnosis: App Likely Crashing on Missing Env Vars
 
-This is the right next step. Clean, minimal, and maps directly to your CSV format. Here is the refined plan matched to your actual price book columns.
+The most probable cause of the blank screen is `src/lib/supabase.ts` line 6-8 — it throws a hard error if `VITE_EXT_SUPABASE_URL` or `VITE_EXT_SUPABASE_ANON_KEY` are not available at build time. Unlike `authSupabase.ts` (which gracefully warns and exports `null`), this file crashes the entire app.
 
-### 1. External Supabase Tables (3 tables)
+The secrets exist in Lovable's secret store, but the `throw` is aggressive — if there's any timing issue or if the preview loads before secrets are injected, everything breaks.
 
-**suppliers**
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | |
-| user_id | uuid | auth.uid(), RLS |
-| name | text | e.g. "JA Russell" |
-| priority | integer | 1 = highest |
-| is_default | boolean | default false |
-| is_active | boolean | default true |
+### Fix
 
-**supplier_items**
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | |
-| supplier_id | uuid FK | → suppliers.id |
-| sku | text | *ItemCode from CSV |
-| name | text | ItemName from CSV |
-| cost_price | numeric | PurchasesUnitPrice |
-| sell_price | numeric | SalesUnitPrice |
-| searchable_text | text | lower(name + ' ' + sku) |
+**File: `src/lib/supabase.ts`**
 
-**job_materials**
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | |
-| job_id | text | reference to job |
-| user_id | uuid | auth.uid(), RLS |
-| supplier_item_id | uuid FK | → supplier_items.id |
-| quantity | integer | default 1 |
-| unit_price | numeric | sell_price at time of add |
-| cost_price | numeric | cost at time of add |
+Make it match the graceful pattern used by `authSupabase.ts`:
+- Replace the `throw` with a `console.warn`
+- Export `null` when env vars are missing instead of crashing
+- Update the type export so consumers can handle `null`
 
-All three tables get RLS policies scoped to `user_id = auth.uid()`.
+```ts
+const SUPABASE_URL = import.meta.env.VITE_EXT_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_EXT_SUPABASE_ANON_KEY;
 
-### 2. Settings → Suppliers UI
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.warn("[supabase] Missing VITE_EXT_SUPABASE_URL or VITE_EXT_SUPABASE_ANON_KEY — external DB features will not work.");
+}
 
-New "Suppliers" section on Settings page:
-- List of suppliers with name, priority, default toggle, active toggle
-- "Add Supplier" button → inline form (name, priority)
-- Edit/deactivate existing suppliers
-- Uses external Supabase client (`@/lib/supabase`)
+export const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { ... })
+  : null;
+```
 
-### 3. CSV Price Book Upload (per supplier)
+This single change should stop the crash and let the app load. The supplier/materials features will simply show "Sign in to manage..." or empty states when the external DB isn't reachable, rather than killing the entire app.
 
-On the Suppliers settings section:
-- Select a supplier → "Upload Price Book" button
-- Parse CSV, auto-map columns based on the known format:
-  - `*ItemCode` → sku
-  - `ItemName` → name
-  - `PurchasesUnitPrice` → cost_price
-  - `SalesUnitPrice` → sell_price
-- Generate `searchable_text = lower(name + ' ' + sku)`
-- Bulk insert into `supplier_items` for that supplier
-- Show count of items imported
-
-### 4. Materials Search on Job Card
-
-Replace the current static "Add Material" button with a search dropdown:
-- Text input triggers search on `searchable_text` using `ilike '%term%'`
-- Results sorted by supplier priority, then name
-- Each result shows: **Supplier Name** | Item Name — $sell_price
-- On select: insert into `job_materials` with job_id, supplier_item_id, quantity=1, unit_price, cost_price
-
-### 5. MaterialsTab Refactor
-
-- Fetch `job_materials` joined with `supplier_items` and `suppliers` from external Supabase
-- Display: Item name, Qty (editable), Unit price, Total, Supplier
-- Totals row sums all line items
-- Remove dependency on `MaterialItem` from `dummyJobDetails`
-
-### 6. Files to Create/Modify
-
-| File | Action |
-|------|--------|
-| Settings page — new Suppliers section | Modify |
-| `src/components/job/MaterialsTab.tsx` | Rewrite |
-| `src/components/job/MaterialSearch.tsx` | New — search dropdown |
-| `src/services/supplierService.ts` | New — CRUD for suppliers + items |
-| `src/services/supplierImportService.ts` | New — CSV price book parser |
-| `src/services/jobMaterialsService.ts` | New — job_materials CRUD |
-
-### 7. What Gets Removed
-
-- Hardcoded `MaterialItem` type and dummy data from `dummyJobDetails.ts`
-- No more static materials arrays — production mode is supplier_items only
+### Files changed
+- `src/lib/supabase.ts` — replace `throw` with `console.warn`, export `null` gracefully
 
