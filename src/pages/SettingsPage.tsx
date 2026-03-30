@@ -21,7 +21,7 @@ import type { UserSettings } from "@/contexts/UserSettingsContext";
 import { IMPORT_FIELD_OPTIONS, importCustomersCsv, parseCustomerCsvFile, type CsvMapping, type ImportFieldKey } from "@/services/customerImportService";
 import { SuppliersSettings } from "@/components/settings/SuppliersSettings";
 
-type SettingsTab = "business" | "notifications" | "appearance" | "billing" | "team" | "integrations" | "documents";
+type SettingsTab = "business" | "suppliers" | "notifications" | "appearance" | "billing" | "team" | "integrations" | "documents";
 
 const EMPTY_BUSINESS_PROFILE: BusinessProfile = {
   businessName: "",

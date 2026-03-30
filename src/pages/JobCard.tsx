@@ -111,7 +111,7 @@ export default function JobCard() {
     messages: <MessagesTab recordType="job" recordId={job.id} showPipelineLink pipelinePath="/" />,
     history: <HistoryTab job={job} />,
     quote: <QuoteTab job={job} />,
-    materials: <MaterialsTab materials={job.materials} />,
+    materials: <MaterialsTab jobId={job.id} />,
     notes: <NotesTab notes={job.notes} />,
     photos: <PhotosTab photos={job.photos} />,
     time: <TimeTab timeEntries={job.timeEntries} />,
