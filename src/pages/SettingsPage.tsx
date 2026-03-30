@@ -19,6 +19,7 @@ import { useUserSettings } from "@/contexts/UserSettingsContext";
 import type { BusinessProfile } from "@/contexts/UserSettingsContext";
 import type { UserSettings } from "@/contexts/UserSettingsContext";
 import { IMPORT_FIELD_OPTIONS, importCustomersCsv, parseCustomerCsvFile, type CsvMapping, type ImportFieldKey } from "@/services/customerImportService";
+import { SuppliersSettings } from "@/components/settings/SuppliersSettings";
 
 type SettingsTab = "business" | "notifications" | "appearance" | "billing" | "team" | "integrations" | "documents";
 
