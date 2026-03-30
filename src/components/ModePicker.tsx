@@ -107,6 +107,11 @@ export function ModePicker() {
         </div>
 
         <div className="grid gap-3">
+          {isDemo && (
+            <button onClick={() => { sessionStorage.clear(); setIsDemo(false); }} className="group rounded-xl border-2 border-primary bg-card p-5 text-left">
+              <div className="flex items-center gap-4"><LogIn className="w-6 h-6 text-primary" /><h2 className="text-base font-bold text-card-foreground">Sign In</h2></div>
+            </button>
+          )}
           {settings.tutorialsEnabled && (
             <button onClick={() => { setTutorialOn(false); setMode("intro"); }} className="group rounded-xl border-2 border-border bg-card p-5 text-left">
               <div className="flex items-center gap-4"><Receipt className="w-6 h-6 text-primary" /><h2 className="text-base font-bold text-card-foreground">Intro Tutorial</h2></div>
