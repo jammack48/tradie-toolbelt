@@ -27,7 +27,7 @@ def _check_supabase_customers() -> dict[str, Any]:
             "message": "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY).",
         }
 
-    endpoint = f"{supabase_url.rstrip('/')}/rest/v1/customers?select=id&limit=1"
+    endpoint = f"{supabase_url.rstrip('/')}/rest/v1/customers_prod?select=id&limit=1"
     headers = {
         "apikey": service_key,
         "Authorization": f"Bearer {service_key}",
