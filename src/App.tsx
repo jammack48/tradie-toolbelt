@@ -65,8 +65,12 @@ function AppLayout() {
     if (!started) {
       sessionStorage.setItem("appSessionStarted", "true");
       clearMode();
+      // Reset demo flag so user sees splash screen on fresh sessions
+      if (!user) {
+        setIsDemo(false);
+      }
     }
-  }, [clearMode]);
+  }, [clearMode, user, setIsDemo]);
 
   useEffect(() => {
     if (settingsLoading) return;
