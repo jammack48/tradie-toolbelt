@@ -75,7 +75,7 @@ export default function WorkJobCard() {
     overview: <WorkOverviewTab job={job} />,
     scope: <ScopeTab job={job} />,
     time: <TimeTab timeEntries={job.timeEntries} />,
-    materials: <WorkMaterialsTab materials={job.materials} showPricing={isSoleTrader} />,
+    materials: <MaterialsTab jobId={job.id} />,
     notes: <NotesTab notes={job.notes} />,
     photos: <PhotosTab photos={job.photos} />,
     forms: <FormsTab completedChecklists={completedChecklists} />,
