@@ -24,7 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchVariationCounts } from "@/services/variationsService";
 import { formatJobNumber } from "@/lib/jobNumber";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { MaterialItem } from "@/data/dummyJobDetails";
+import { MaterialsTab } from "@/components/job/MaterialsTab";
 import type { CompletedChecklist } from "@/data/dummyChecklists";
 
 type WorkJobTab = "overview" | "scope" | "time" | "materials" | "notes" | "photos" | "forms" | "variations";
