@@ -19,8 +19,9 @@ import { useUserSettings } from "@/contexts/UserSettingsContext";
 import type { BusinessProfile } from "@/contexts/UserSettingsContext";
 import type { UserSettings } from "@/contexts/UserSettingsContext";
 import { IMPORT_FIELD_OPTIONS, importCustomersCsv, parseCustomerCsvFile, type CsvMapping, type ImportFieldKey } from "@/services/customerImportService";
+import { SuppliersSettings } from "@/components/settings/SuppliersSettings";
 
-type SettingsTab = "business" | "notifications" | "appearance" | "billing" | "team" | "integrations" | "documents";
+type SettingsTab = "business" | "suppliers" | "notifications" | "appearance" | "billing" | "team" | "integrations" | "documents";
 
 const EMPTY_BUSINESS_PROFILE: BusinessProfile = {
   businessName: "",
@@ -367,6 +368,7 @@ function SettingsContent({ tab }: { tab: SettingsTab }) {
         </div>
       </div>
     ),
+    suppliers: <SuppliersSettings />,
     notifications: (
       <div className="space-y-5">
         <h2 className="text-lg font-semibold text-card-foreground">Notifications</h2>
