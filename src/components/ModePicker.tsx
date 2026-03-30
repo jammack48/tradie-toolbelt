@@ -14,6 +14,7 @@ export function ModePicker() {
   const { setMode, setSoleTraderPrefs } = useAppMode();
   const { setTutorialOn } = useTutorial();
   const { settings } = useUserSettings();
+  const { isDemo, setIsDemo } = useAuth();
   const showAllModesForDev = import.meta.env.DEV;
   const canShowToolsMode = settings.showToolsMode || showAllModesForDev;
   const canShowEmployeeMode = settings.showEmployeeMode || showAllModesForDev;
