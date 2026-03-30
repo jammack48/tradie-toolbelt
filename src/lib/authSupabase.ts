@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const EXT_URL = import.meta.env.VITE_EXT_SUPABASE_URL;
-const EXT_ANON = import.meta.env.VITE_EXT_SUPABASE_ANON_KEY;
+const EXT_URL = import.meta.env.VITE_EXT_SUPABASE_URL || 'https://qrkojbfayjrtrlrmgzry.supabase.co';
+const EXT_ANON = import.meta.env.VITE_EXT_SUPABASE_ANON_KEY || 'sb_publishable_P8s5LPIKyxYxM9UUwthePA_j12HHtet';
 
 if (!EXT_URL || !EXT_ANON) {
   console.warn(
