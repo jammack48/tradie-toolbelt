@@ -47,7 +47,7 @@ export function AppHeader() {
   const { isWorkMode, isSoleTrader, isTimesheetOnlyMode, clearMode, setMode } = useAppMode();
   const isMobile = useIsMobile();
   const { position, cyclePosition } = useToolbarPosition();
-  const { isDemo } = useAuth();
+  const { isDemo, setIsDemo } = useAuth();
   const { settings } = useUserSettings();
   const showAllModesForDev = import.meta.env.DEV;
   const canShowToolsMode = settings.showToolsMode || showAllModesForDev;
@@ -118,6 +118,11 @@ export function AppHeader() {
             <DropdownMenuItem onClick={() => { clearMode(); navigate("/"); }}>
               Main Menu
             </DropdownMenuItem>
+            {isDemo && (
+              <DropdownMenuItem onClick={() => { sessionStorage.clear(); clearMode(); setIsDemo(false); navigate("/"); }}>
+                Sign In
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

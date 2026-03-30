@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Shield, Wrench, HardHat, ArrowRight, Building2, Receipt } from "lucide-react";
+import { Shield, Wrench, HardHat, ArrowRight, Building2, Receipt, LogIn } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAppMode } from "@/contexts/AppModeContext";
 import { useTutorial } from "@/contexts/TutorialContext";
 import { Switch } from "@/components/ui/switch";
@@ -13,6 +14,7 @@ export function ModePicker() {
   const { setMode, setSoleTraderPrefs } = useAppMode();
   const { setTutorialOn } = useTutorial();
   const { settings } = useUserSettings();
+  const { isDemo, setIsDemo } = useAuth();
   const showAllModesForDev = import.meta.env.DEV;
   const canShowToolsMode = settings.showToolsMode || showAllModesForDev;
   const canShowEmployeeMode = settings.showEmployeeMode || showAllModesForDev;
@@ -105,6 +107,11 @@ export function ModePicker() {
         </div>
 
         <div className="grid gap-3">
+          {isDemo && (
+            <button onClick={() => { sessionStorage.clear(); setIsDemo(false); }} className="group rounded-xl border-2 border-primary bg-card p-5 text-left">
+              <div className="flex items-center gap-4"><LogIn className="w-6 h-6 text-primary" /><h2 className="text-base font-bold text-card-foreground">Sign In</h2></div>
+            </button>
+          )}
           {settings.tutorialsEnabled && (
             <button onClick={() => { setTutorialOn(false); setMode("intro"); }} className="group rounded-xl border-2 border-border bg-card p-5 text-left">
               <div className="flex items-center gap-4"><Receipt className="w-6 h-6 text-primary" /><h2 className="text-base font-bold text-card-foreground">Intro Tutorial</h2></div>
