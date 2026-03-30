@@ -276,7 +276,7 @@ export function getJobDetail(jobId: string, overrides?: { client?: string; addre
       startDate: "Mon 10 Feb 2025",
       dueDate: "Fri 21 Feb 2025",
       staff: staffPool.slice(0, staffCount),
-      materials: materialsPool.slice(0, matCount),
+      materials: [],
       notes: notesPool.slice(0, (seed % 3) + 1),
       photos: photosPool.slice(0, (seed % 3) + 2),
       timeEntries: timePool.slice(0, (seed % 3) + 1),
