@@ -118,6 +118,11 @@ export function AppHeader() {
             <DropdownMenuItem onClick={() => { clearMode(); navigate("/"); }}>
               Main Menu
             </DropdownMenuItem>
+            {isDemo && (
+              <DropdownMenuItem onClick={() => { sessionStorage.clear(); clearMode(); setIsDemo(false); navigate("/"); }}>
+                Sign In
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Shield, Wrench, HardHat, ArrowRight, Building2, Receipt } from "lucide-react";
+import { Shield, Wrench, HardHat, ArrowRight, Building2, Receipt, LogIn } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAppMode } from "@/contexts/AppModeContext";
 import { useTutorial } from "@/contexts/TutorialContext";
 import { Switch } from "@/components/ui/switch";
