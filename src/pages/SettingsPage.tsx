@@ -368,6 +368,7 @@ function SettingsContent({ tab }: { tab: SettingsTab }) {
         </div>
       </div>
     ),
+    suppliers: <SuppliersSettings />,
     notifications: (
       <div className="space-y-5">
         <h2 className="text-lg font-semibold text-card-foreground">Notifications</h2>
