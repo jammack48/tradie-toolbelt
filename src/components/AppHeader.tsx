@@ -47,7 +47,7 @@ export function AppHeader() {
   const { isWorkMode, isSoleTrader, isTimesheetOnlyMode, clearMode, setMode } = useAppMode();
   const isMobile = useIsMobile();
   const { position, cyclePosition } = useToolbarPosition();
-  const { isDemo } = useAuth();
+  const { isDemo, setIsDemo } = useAuth();
   const { settings } = useUserSettings();
   const showAllModesForDev = import.meta.env.DEV;
   const canShowToolsMode = settings.showToolsMode || showAllModesForDev;
