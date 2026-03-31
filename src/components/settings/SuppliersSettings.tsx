@@ -172,6 +172,9 @@ export function SuppliersSettings() {
                   )}
                   <span className="text-xs text-muted-foreground">Priority: {s.priority}</span>
                   <span className="text-xs text-muted-foreground">({itemCounts[s.id] ?? 0} items)</span>
+                  <span className="text-xs text-muted-foreground">
+                    Date uploaded: {s.last_pricebook_uploaded_at ? new Date(s.last_pricebook_uploaded_at).toLocaleDateString() : "Not uploaded"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Switch
@@ -208,7 +211,7 @@ export function SuppliersSettings() {
                   onClick={() => fileRefs.current[s.id]?.click()}
                 >
                   <Upload className="w-3 h-3" />
-                  {uploading === s.id ? "Importing..." : "Upload Price Book"}
+                  {uploading === s.id ? "Importing..." : (itemCounts[s.id] ?? 0) > 0 ? "Refresh Price Book" : "Upload Price Book"}
                 </Button>
               </div>
             </div>

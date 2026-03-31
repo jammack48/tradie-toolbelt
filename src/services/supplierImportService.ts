@@ -115,5 +115,14 @@ export async function importPriceBook(supplierId: string, rows: PriceBookRow[]):
     imported += chunk.length;
   }
 
+  const { error: supplierUpdateError } = await supabase
+    .from("suppliers")
+    .update({
+      last_pricebook_uploaded_at: new Date().toISOString(),
+      last_pricebook_row_count: imported,
+    } as any)
+    .eq("id", supplierId);
+  if (supplierUpdateError) throw supplierUpdateError;
+
   return imported;
 }

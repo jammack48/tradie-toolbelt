@@ -8,6 +8,8 @@ export interface Supplier {
   is_default: boolean;
   is_active: boolean;
   created_at: string;
+  last_pricebook_uploaded_at?: string | null;
+  last_pricebook_row_count?: number | null;
 }
 
 export interface SupplierItem {
