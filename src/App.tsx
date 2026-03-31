@@ -13,7 +13,7 @@ import { AppModeProvider, useAppMode } from "@/contexts/AppModeContext";
 import { DemoDataProvider } from "@/contexts/DemoDataContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { UserSettingsProvider, useUserSettings } from "@/contexts/UserSettingsContext";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { JobPrefixProvider } from "@/contexts/JobPrefixContext";
 import { BackendProvider } from "@/contexts/BackendContext";
@@ -46,7 +46,6 @@ import SmsTemplatesPage from "./pages/SmsTemplatesPage";
 import InvoicePage from "./pages/InvoicePage";
 
 import NotFound from "./pages/NotFound";
-import SplashPage from "./pages/SplashPage";
 import LoginPage from "./pages/LoginPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 
@@ -54,29 +53,21 @@ const queryClient = new QueryClient();
 
 function AppLayout() {
   const { mode, isWorkMode, isTimesheetOnlyMode, isIntroMode, clearMode } = useAppMode();
-  const { user, loading, isDemo, setIsDemo } = useAuth();
+  const { user, loading } = useAuth();
   const { settings, loading: settingsLoading } = useUserSettings();
   const { setTheme, setIsDark } = useTheme();
-  const [showLogin, setShowLogin] = useState(false);
-
-  // Each fresh browser session starts at splash → mode picker (clears cached mode)
-  useEffect(() => {
-    const started = sessionStorage.getItem("appSessionStarted");
-    if (!started) {
-      sessionStorage.setItem("appSessionStarted", "true");
-      clearMode();
-      // Reset demo flag so user sees splash screen on fresh sessions
-      if (!user) {
-        setIsDemo(false);
-      }
-    }
-  }, [clearMode, user, setIsDemo]);
 
   useEffect(() => {
     if (settingsLoading) return;
     setTheme(settings.theme);
     setIsDark(settings.isDark);
   }, [settingsLoading, settings.theme, settings.isDark, setTheme, setIsDark]);
+
+  useEffect(() => {
+    if (!user) {
+      clearMode();
+    }
+  }, [user, clearMode]);
 
   // Show loading spinner while auth initializes
   if (loading) {
@@ -87,17 +78,9 @@ function AppLayout() {
     );
   }
 
-  // Not authenticated and not in demo mode → show splash or login
-  if (!user && !isDemo) {
-    if (showLogin) {
-      return <LoginPage onBack={() => setShowLogin(false)} />;
-    }
-    return (
-      <SplashPage
-        onSignIn={() => { setIsDemo(false); setShowLogin(true); }}
-        onDemo={() => setIsDemo(true)}
-      />
-    );
+  // Always require login first when unauthenticated
+  if (!user) {
+    return <LoginPage />;
   }
 
   if (!mode) {

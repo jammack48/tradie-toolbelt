@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isDemo, setIsDemo] = useState(() => localStorage.getItem("isDemo") === "true");
+  const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
     if (!authSupabase) {
@@ -47,10 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("isDemo", String(isDemo));
-  }, [isDemo]);
 
   const login = async (email: string, password: string) => {
     if (!authSupabase) return { error: "Auth not configured" };

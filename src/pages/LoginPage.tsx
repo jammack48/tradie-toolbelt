@@ -8,7 +8,7 @@ import { authSupabase } from "@/lib/authSupabase";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginPageProps {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export default function LoginPage({ onBack }: LoginPageProps) {
@@ -74,9 +74,11 @@ export default function LoginPage({ onBack }: LoginPageProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-6">
-        <button onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
+        {onBack && (
+          <button onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+        )}
 
         <div className="flex items-center justify-center gap-2">
           <Wrench className="w-7 h-7 text-primary" />
