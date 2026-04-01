@@ -148,8 +148,10 @@ export function QuoteTab({ job, initialBundle, initialDescription, beforeActions
         setDbMaterials(items.map((item) => ({
           id: item.id,
           name: `${item.name}${item.supplier_name ? ` (${item.supplier_name})` : ""}`,
+          quantity: 1,
           unitPrice: item.sell_price,
           unit: "ea",
+          supplier: item.supplier_name ?? "",
           section: "materials" as Section,
         })));
       } catch (e) {
