@@ -60,7 +60,7 @@ export function DemoDataProvider({ children }: { children: ReactNode }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [isDemo]);
+  }, [isDemo, user]);
 
   const updateJobStage = useCallback((jobId: string, stage: Stage) => {
     setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, stage, ageDays: 0 } : j)));

@@ -572,10 +572,10 @@ export function QuoteTab({ job, initialBundle, initialDescription, beforeActions
       </div>
 
       {/* ── Section-filtered command palette dialog ──────── */}
-      <Dialog open={paletteOpen} onOpenChange={(open) => { setPaletteOpen(open); if (!open) { setPaletteSection(null); setPaletteBlockId(null); } }}>
+      <Dialog open={paletteOpen} onOpenChange={(open) => { setPaletteOpen(open); if (!open) { setPaletteSection(null); setPaletteBlockId(null); setMaterialSearchQuery(""); } }}>
         <DialogContent className="p-0 max-w-md">
-          <Command>
-            <CommandInput placeholder={`Search ${paletteSection ?? "all"} items…`} />
+          <Command shouldFilter={isDemo || paletteSection !== "materials"}>
+            <CommandInput placeholder={`Search ${paletteSection ?? "all"} items…`} onValueChange={(val) => { if (!isDemo && paletteSection === "materials") setMaterialSearchQuery(val); }} />
             <CommandList>
               <CommandEmpty>
                 <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm" onClick={() => { if (paletteBlockId) addBlankTo(paletteBlockId, paletteSection ?? "materials"); setPaletteOpen(false); setPaletteSection(null); setPaletteBlockId(null); }}>+ Add as custom item</button>
