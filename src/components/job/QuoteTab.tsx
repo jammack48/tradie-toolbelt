@@ -130,6 +130,34 @@ function BlockSection({ label, items, section, isOpen, onToggle, onUpdate, onDel
 
 /* ── Main QuoteTab ──────────────────────────────────────── */
 export function QuoteTab({ job, initialBundle, initialDescription, beforeActions, onSendQuote }: QuoteTabProps) {
+  const { isDemo } = useAuth();
+  const [dbMaterials, setDbMaterials] = useState<Array<{ id: string; name: string; unitPrice: number; unit: string; section: Section }>>([]);
+  const [materialSearchQuery, setMaterialSearchQuery] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Search supplier_items from DB in production mode
+  useEffect(() => {
+    if (isDemo || !materialSearchQuery || materialSearchQuery.length < 2) {
+      setDbMaterials([]);
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const items = await searchSupplierItems(materialSearchQuery);
+        setDbMaterials(items.map((item) => ({
+          id: item.id,
+          name: `${item.name}${item.supplier_name ? ` (${item.supplier_name})` : ""}`,
+          unitPrice: item.sell_price,
+          unit: "ea",
+          section: "materials" as Section,
+        })));
+      } catch (e) {
+        console.error("Supplier search failed", e);
+      }
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [materialSearchQuery, isDemo]);
   const mkItem = (name: string, qty: number, unitPrice: number): LineItem => ({
     id: genId(), name, qty, unitPrice, sellPrice: unitPrice, markup: 0,
   });
