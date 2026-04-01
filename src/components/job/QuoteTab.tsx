@@ -17,6 +17,8 @@ import type { JobDetail } from "@/data/dummyJobDetails";
 import { catalogueItems, bundleTemplates } from "@/data/dummyJobDetails";
 import { coverLetterTemplates } from "@/data/coverLetterTemplates";
 import { QuotePreview } from "@/components/quote/QuotePreview";
+import { useAuth } from "@/contexts/AuthContext";
+import { searchSupplierItems, type SupplierItem } from "@/services/supplierService";
 
 interface LineItem {
   id: string;
