@@ -1,42 +1,38 @@
 
 
-## Fix: Customers Not Loading, Price Book Not Saving, Hardcoded Materials in Production
+## Fix: Customers Not Loading After Login + Replace Hardcoded Quote Materials
 
-### Root Causes
+### Problem 1: Customers never load in production mode
 
-1. **Two separate Supabase clients** — `authSupabase` (handles login) and `supabase` (handles data) are independent `createClient` instances pointing to the same project. When a user logs in via `authSupabase`, the data client `supabase` has no session. RLS policies on `customers_prod`, `suppliers`, `supplier_items`, and `job_materials` require `auth.uid()`, which returns null on the sessionless data client. Result: all queries silently return empty or fail.
+The network trace proves it: `customers_prod` is queried BEFORE login (at 17:24:18Z with anon key → returns `[]` due to RLS). Login succeeds at 17:24:36Z with a valid JWT, but the customer query never re-fires because `DemoDataContext`'s `useEffect` depends on `isDemo`, which doesn't change on login.
 
-2. **Null client not guarded** — `supabase` is typed as `SupabaseClient | null` but supplier/material services call `.from()` without null checks, causing crashes.
+**Fix**: Add `user` (from `useAuth()`) as a dependency to the `useEffect` in `DemoDataContext` so customers re-fetch when the user signs in.
 
-3. **Hardcoded materials in job details** — `getJobDetail()` returns items from `materialsPool` (hardcoded catalogue) for every job. In production mode, materials should come exclusively from the `MaterialsTab` component (which queries `job_materials` from DB).
+### Problem 2: Quote tab uses hardcoded material catalogue
+
+`QuoteTab.tsx` imports `catalogueItems` from `dummyJobDetails.ts` — hardcoded items like "Copper Pipe 15mm", "PVC Elbow 90°". In production mode, this should search `supplier_items` from the database instead.
+
+**Fix**: Replace the hardcoded `catalogueItems` in `QuoteTab.tsx` with a call to `searchSupplierItems()` from `supplierService.ts`. Use the existing search-as-you-type pattern already implemented in `MaterialSearch.tsx`.
 
 ### Changes
 
-**1. Merge into a single Supabase client** (`src/lib/supabase.ts`)
-- Remove the separate `authSupabase` client file
-- Export one non-null `supabase` client (with hardcoded fallbacks, it's always created)
-- Change the export type from `SupabaseClient | null` to `SupabaseClient`
-- Remove the null check conditional
+**1. `src/contexts/DemoDataContext.tsx`** — Re-fetch customers on auth change
+- Import `useAuth` and get `user` from it
+- Add `user` to the `useEffect` dependency array that fetches customers
+- This ensures that after login, customers are re-fetched with the authenticated JWT
 
-**2. Update `src/lib/authSupabase.ts`**
-- Re-export the single client: `export { supabase as authSupabase } from "@/lib/supabase"`
-- This means login session and data queries share the same client, so RLS sees `auth.uid()` correctly
+**2. `src/components/job/QuoteTab.tsx`** — Replace hardcoded catalogue with DB search
+- Remove `import { catalogueItems } from "@/data/dummyJobDetails"`
+- Import `searchSupplierItems` from `supplierService`
+- Import `useAuth` to check if in demo mode
+- For the material command palette: when in production mode, search `supplier_items` via `searchSupplierItems()` as the user types; when in demo mode, fall back to the existing hardcoded list
+- Labour and extras items can remain hardcoded (they're not supplier-sourced)
 
-**3. Update `src/contexts/AuthContext.tsx`**
-- Import from the unified client (no change needed if `authSupabase` re-export works)
+**3. `src/data/dummyJobDetails.ts`** — No further changes needed
+- The hardcoded `catalogueItems` export stays for demo mode and labour/extras; production materials come from DB via the QuoteTab change above
 
-**4. Remove null guards in services**
-- `supplierService.ts`, `supplierImportService.ts`, `jobMaterialsService.ts`, `dbDemoService.ts` — remove `as any` casts where they exist for null safety; the client is now guaranteed non-null
-
-**5. Remove hardcoded materials from production job details**
-- In `getJobDetail()` (`src/data/dummyJobDetails.ts`): when called for production jobs, set `materials: []` — the `MaterialsTab` component already handles fetching real materials from `job_materials` table
-- Keep hardcoded materials only for demo mode jobs (controlled by checking if the caller passes a flag, or simply always return empty materials since `MaterialsTab` is the source of truth for the UI)
-
-**6. Clean up `DemoDataContext` materials reference**
-- `materials: materialsSeed` is only used for demo mode display — keep as-is for demo, but ensure production views don't reference it
-
-### Why This Fixes Everything
-- **Customers**: Same client holds the auth session → `auth.uid()` resolves → RLS allows `SELECT` on `customers_prod`
-- **Suppliers/Price Book**: Same fix — authenticated session flows through to `suppliers` and `supplier_items` tables
-- **Materials**: `MaterialsTab` already queries `job_materials` from DB; removing hardcoded materials from `getJobDetail()` ensures production shows only real data
+### Why this fixes everything
+- **Customers**: Auth state change triggers re-fetch → JWT is present → RLS allows SELECT → customers appear
+- **Materials/Price book**: QuoteTab searches real `supplier_items` table → shows your uploaded Fergus price book data
+- **No backend changes needed**: This is purely a frontend data-wiring issue
 
