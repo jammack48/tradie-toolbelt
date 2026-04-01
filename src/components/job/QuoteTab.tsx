@@ -131,7 +131,7 @@ function BlockSection({ label, items, section, isOpen, onToggle, onUpdate, onDel
 /* ── Main QuoteTab ──────────────────────────────────────── */
 export function QuoteTab({ job, initialBundle, initialDescription, beforeActions, onSendQuote }: QuoteTabProps) {
   const { isDemo } = useAuth();
-  const [dbMaterials, setDbMaterials] = useState<Array<{ id: string; name: string; unitPrice: number; unit: string; section: Section }>>([]);
+  const [dbMaterials, setDbMaterials] = useState<Array<{ id: string; name: string; quantity: number; unitPrice: number; unit: string; supplier: string; section: Section }>>([]);
   const [materialSearchQuery, setMaterialSearchQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
