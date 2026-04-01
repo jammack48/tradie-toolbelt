@@ -377,7 +377,7 @@ export function QuoteTab({ job, initialBundle, initialDescription, beforeActions
   const grandTotal = sellSubtotal + gst;
 
   const labourCatalogue = catalogueItems.filter((i) => i.section === "labour");
-  const materialsCatalogue = catalogueItems.filter((i) => i.section === "materials");
+  const materialsCatalogue = isDemo ? catalogueItems.filter((i) => i.section === "materials") : dbMaterials;
   const extrasCatalogue = catalogueItems.filter((i) => i.section === "extras");
 
   return (
