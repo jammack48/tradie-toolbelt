@@ -8,10 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { DUMMY_CUSTOMERS } from "@/data/dummyCustomers";
 import { DEMO_JOBS, WORK_START, WORK_END, HOUR_HEIGHT_MOBILE, formatTime } from "@/components/schedule/scheduleData";
 import { DayStrip } from "@/components/schedule/DayStrip";
 import { useAppMode } from "@/contexts/AppModeContext";
+import { useDemoData } from "@/contexts/DemoDataContext";
+
+type CustomerOption = {
+  id: number;
+  name: string;
+  address: string;
+};
 
 /* ─── Step Indicator ─── */
 function StepDots({ current }: { current: number }) {
@@ -37,26 +43,28 @@ function CustomerPicker({
   address, setAddress,
   description, setDescription,
   isNewCustomer, setIsNewCustomer,
+  customers,
   requireDescription = false,
 }: {
   customer: string; setCustomer: (v: string) => void;
   address: string; setAddress: (v: string) => void;
   description: string; setDescription: (v: string) => void;
   isNewCustomer: boolean; setIsNewCustomer: (v: boolean) => void;
+  customers: CustomerOption[];
   requireDescription?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return DUMMY_CUSTOMERS;
+    if (!search.trim()) return customers;
     const q = search.toLowerCase();
-    return DUMMY_CUSTOMERS.filter(c =>
+    return customers.filter(c =>
       c.name.toLowerCase().includes(q) || c.address.toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [search, customers]);
 
-  const selectCustomer = (c: typeof DUMMY_CUSTOMERS[0]) => {
+  const selectCustomer = (c: CustomerOption) => {
     setCustomer(c.name);
     setAddress(c.address);
     setSearch(c.name);
@@ -379,6 +387,7 @@ function ScheduleGrid({
 export default function WorkNewJob() {
   const navigate = useNavigate();
   const { isIntroMode } = useAppMode();
+  const { customers } = useDemoData();
   const [step, setStep] = useState(1);
 
   // Step 1
@@ -402,6 +411,10 @@ export default function WorkNewJob() {
   const introDetailsValid = detailsValid && description.trim();
 
   const jobState = { customer, address, description };
+  const customerOptions = useMemo<CustomerOption[]>(
+    () => customers.map((c) => ({ id: c.id, name: c.name, address: c.address || "" })),
+    [customers]
+  );
 
   const handleConfirm = () => {
     toast({
@@ -454,6 +467,7 @@ export default function WorkNewJob() {
             address={address} setAddress={setAddress}
             description={description} setDescription={setDescription}
             isNewCustomer={isNewCustomer} setIsNewCustomer={setIsNewCustomer}
+            customers={customerOptions}
             requireDescription
           />
           <Button className="w-full h-12 gap-2" disabled={!introDetailsValid} onClick={handleIntroComplete}>
@@ -471,6 +485,7 @@ export default function WorkNewJob() {
             address={address} setAddress={setAddress}
             description={description} setDescription={setDescription}
             isNewCustomer={isNewCustomer} setIsNewCustomer={setIsNewCustomer}
+            customers={customerOptions}
           />
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1 h-12 gap-2" disabled={!detailsValid} onClick={handleStartNow}>
