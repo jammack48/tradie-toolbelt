@@ -34,7 +34,7 @@ function loadSeedJobs(): DemoJob[] {
 }
 
 export function DemoDataProvider({ children }: { children: ReactNode }) {
-  const { isDemo } = useAuth();
+  const { isDemo, user } = useAuth();
   const [jobs, setJobs] = useState<DemoJob[]>(() => (isDemo ? loadSeedJobs() : []));
   const [customers, setCustomers] = useState<DemoCustomer[]>([]);
   const [loading, setLoading] = useState(true);
