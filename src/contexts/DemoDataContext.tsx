@@ -34,7 +34,7 @@ function loadSeedJobs(): DemoJob[] {
 }
 
 export function DemoDataProvider({ children }: { children: ReactNode }) {
-  const { isDemo } = useAuth();
+  const { isDemo, user } = useAuth();
   const [jobs, setJobs] = useState<DemoJob[]>(() => (isDemo ? loadSeedJobs() : []));
   const [customers, setCustomers] = useState<DemoCustomer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +60,7 @@ export function DemoDataProvider({ children }: { children: ReactNode }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [isDemo]);
+  }, [isDemo, user]);
 
   const updateJobStage = useCallback((jobId: string, stage: Stage) => {
     setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, stage, ageDays: 0 } : j)));
