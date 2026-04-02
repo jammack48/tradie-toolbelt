@@ -13,7 +13,7 @@ import { AppModeProvider, useAppMode } from "@/contexts/AppModeContext";
 import { DemoDataProvider } from "@/contexts/DemoDataContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { UserSettingsProvider, useUserSettings } from "@/contexts/UserSettingsContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { JobPrefixProvider } from "@/contexts/JobPrefixContext";
 import { BackendProvider } from "@/contexts/BackendContext";
@@ -48,12 +48,14 @@ import InvoicePage from "./pages/InvoicePage";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import SplashPage from "./pages/SplashPage";
 
 const queryClient = new QueryClient();
 
 function AppLayout() {
   const { mode, isWorkMode, isTimesheetOnlyMode, isIntroMode, clearMode } = useAppMode();
-  const { user, loading } = useAuth();
+  const { user, loading, isDemo, setIsDemo } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
   const { settings, loading: settingsLoading } = useUserSettings();
   const { setTheme, setIsDark } = useTheme();
 
@@ -78,9 +80,17 @@ function AppLayout() {
     );
   }
 
-  // Always require login first when unauthenticated
-  if (!user) {
-    return <LoginPage />;
+  // Unauthenticated: show SplashPage or LoginPage
+  if (!user && !isDemo) {
+    if (showLogin) {
+      return <LoginPage onBack={() => setShowLogin(false)} />;
+    }
+    return (
+      <SplashPage
+        onSignIn={() => setShowLogin(true)}
+        onDemo={() => setIsDemo(true)}
+      />
+    );
   }
 
   if (!mode) {
