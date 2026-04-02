@@ -1,38 +1,52 @@
 
+Goal
 
-## Fix: Customers Not Loading After Login + Replace Hardcoded Quote Materials
+- Make the app use only your external Supabase for auth, demo data, and production data.
+- Remove the code path that is currently defaulting to the managed backend.
 
-### Problem 1: Customers never load in production mode
+What I’ll change
 
-The network trace proves it: `customers_prod` is queried BEFORE login (at 17:24:18Z with anon key → returns `[]` due to RLS). Login succeeds at 17:24:36Z with a valid JWT, but the customer query never re-fires because `DemoDataContext`'s `useEffect` depends on `isDemo`, which doesn't change on login.
+1. Lock the shared frontend client to your Supabase only
+- Update `src/lib/supabase.ts` so it uses only your external credentials (`VITE_EXT_SUPABASE_URL` / `VITE_EXT_SUPABASE_ANON_KEY`) plus an external-only hardcoded fallback if needed for preview reliability.
+- Remove all reads of `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from app code.
+- Replace the current error text so it no longer mentions the managed env vars.
 
-**Fix**: Add `user` (from `useAuth()`) as a dependency to the `useEffect` in `DemoDataContext` so customers re-fetch when the user signs in.
+2. Add the hardcoded warning comment at the top of the key file
+- Put a clear header comment at the top of `src/lib/supabase.ts`, for example:
+```ts
+/**
+ * DO NOT USE LOVABLE CLOUD.
+ * This app must use the customer's external Supabase only.
+ * Auth, demo data, and production data all live there.
+ */
+```
+- Mirror the same warning in `src/lib/authSupabase.ts` so future edits do not reintroduce the wrong client.
 
-### Problem 2: Quote tab uses hardcoded material catalogue
+3. Keep auth and data on the same external session
+- Keep `src/lib/authSupabase.ts` as a thin alias to the same external-only client so login, reset password, JWT helpers, and table queries all share one session.
+- This keeps RLS/auth working correctly for `customers_prod`, `suppliers`, `supplier_items`, `job_materials`, and `user_settings`.
 
-`QuoteTab.tsx` imports `catalogueItems` from `dummyJobDetails.ts` — hardcoded items like "Copper Pipe 15mm", "PVC Elbow 90°". In production mode, this should search `supplier_items` from the database instead.
+4. Keep demo data in your Supabase, not in a second backend
+- Leave the `_demo` / `_prod` table routing in `src/lib/modeTable.ts` as-is.
+- `dbDemoService`, `servicingService`, `variationsService`, `customerImportService`, `supplierService`, `supplierImportService`, `jobMaterialsService`, and `UserSettingsContext` already point at `@/lib/supabase`, so once step 1 is fixed they will all hit your Supabase automatically.
 
-**Fix**: Replace the hardcoded `catalogueItems` in `QuoteTab.tsx` with a call to `searchSupplierItems()` from `supplierService.ts`. Use the existing search-as-you-type pattern already implemented in `MaterialSearch.tsx`.
+5. Remove app-level dependency on the managed generated client
+- Do not import `@/integrations/supabase/client` anywhere in runtime code.
+- Do not wire app logic to the generated managed types/client.
+- Leave platform-managed generated files physically present if required, but make them completely unused by the app.
 
-### Changes
+Expected result
 
-**1. `src/contexts/DemoDataContext.tsx`** — Re-fetch customers on auth change
-- Import `useAuth` and get `user` from it
-- Add `user` to the `useEffect` dependency array that fetches customers
-- This ensures that after login, customers are re-fetched with the authenticated JWT
+- Login connects to your Supabase.
+- Customers connect to your Supabase.
+- Materials and supplier search connect to your Supabase.
+- Demo tables like `customers_demo`, `service_reminders_demo`, and `variations_demo` stay in your Supabase.
+- Production tables like `customers_prod`, `suppliers`, `supplier_items`, `job_materials`, and `user_settings` stay in your Supabase.
+- No app code will fall back to the managed backend anymore.
 
-**2. `src/components/job/QuoteTab.tsx`** — Replace hardcoded catalogue with DB search
-- Remove `import { catalogueItems } from "@/data/dummyJobDetails"`
-- Import `searchSupplierItems` from `supplierService`
-- Import `useAuth` to check if in demo mode
-- For the material command palette: when in production mode, search `supplier_items` via `searchSupplierItems()` as the user types; when in demo mode, fall back to the existing hardcoded list
-- Labour and extras items can remain hardcoded (they're not supplier-sourced)
+Technical details
 
-**3. `src/data/dummyJobDetails.ts`** — No further changes needed
-- The hardcoded `catalogueItems` export stays for demo mode and labour/extras; production materials come from DB via the QuoteTab change above
-
-### Why this fixes everything
-- **Customers**: Auth state change triggers re-fetch → JWT is present → RLS allows SELECT → customers appear
-- **Materials/Price book**: QuoteTab searches real `supplier_items` table → shows your uploaded Fergus price book data
-- **No backend changes needed**: This is purely a frontend data-wiring issue
-
+- The main break is centralized in `src/lib/supabase.ts`: it currently prefers `VITE_SUPABASE_*` before `VITE_EXT_*`, and `src/lib/authSupabase.ts` re-exports that same client.
+- Because nearly all auth/data code already flows through this shared client, this is a focused wiring fix, not a schema rebuild.
+- No database migration is needed for this change.
+- I will keep the main shared client untyped against the generated managed schema so the app does not depend on the wrong database definitions.
