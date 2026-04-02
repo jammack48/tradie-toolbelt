@@ -78,9 +78,17 @@ function AppLayout() {
     );
   }
 
-  // Always require login first when unauthenticated
-  if (!user) {
-    return <LoginPage />;
+  // Unauthenticated: show SplashPage or LoginPage
+  if (!user && !isDemo) {
+    if (showLogin) {
+      return <LoginPage onBack={() => setShowLogin(false)} />;
+    }
+    return (
+      <SplashPage
+        onSignIn={() => setShowLogin(true)}
+        onDemo={() => setIsDemo(true)}
+      />
+    );
   }
 
   if (!mode) {
