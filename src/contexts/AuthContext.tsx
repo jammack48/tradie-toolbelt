@@ -12,7 +12,9 @@ interface AuthState {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthState | undefined>(undefined);
+const AuthContext = ((globalThis as any).__authContextSingleton as React.Context<AuthState | undefined>) ?? createContext<AuthState | undefined>(undefined);
+if (!(globalThis as any).__authContextSingleton) (globalThis as any).__authContextSingleton = AuthContext;
+AuthContext.displayName = "AuthContext";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
