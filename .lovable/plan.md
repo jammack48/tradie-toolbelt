@@ -1,52 +1,38 @@
 
-Goal
 
-- Make the app use only your external Supabase for auth, demo data, and production data.
-- Remove the code path that is currently defaulting to the managed backend.
+## Two Fixes
 
-What I’ll change
+### Issue 1: Materials not loading in "On the Tools" mode
 
-1. Lock the shared frontend client to your Supabase only
-- Update `src/lib/supabase.ts` so it uses only your external credentials (`VITE_EXT_SUPABASE_URL` / `VITE_EXT_SUPABASE_ANON_KEY`) plus an external-only hardcoded fallback if needed for preview reliability.
-- Remove all reads of `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from app code.
-- Replace the current error text so it no longer mentions the managed env vars.
+Both Office (`JobCard`) and Work (`WorkJobCard`) render the same `<MaterialsTab jobId={job.id} />` component, which uses `useAuth()` to gate on `user`. The `MaterialSearch` inside calls `searchSupplierItems` from `supplierService.ts`, which imports the client from `@/lib/supabase`. Since we just fixed `supabase.ts` to point to your external project, this should now work in both modes. 
 
-2. Add the hardcoded warning comment at the top of the key file
-- Put a clear header comment at the top of `src/lib/supabase.ts`, for example:
-```ts
-/**
- * DO NOT USE LOVABLE CLOUD.
- * This app must use the customer's external Supabase only.
- * Auth, demo data, and production data all live there.
- */
-```
-- Mirror the same warning in `src/lib/authSupabase.ts` so future edits do not reintroduce the wrong client.
+**However**, I need to verify there isn't a secondary issue — the `MaterialsTab` only loads when `user && jobId` are truthy. If auth state is somehow lost or delayed in work mode, materials won't load. I'll add a defensive check and ensure the search works even without a specific `jobId` match (the search dropdown queries `supplier_items`, not `job_materials`).
 
-3. Keep auth and data on the same external session
-- Keep `src/lib/authSupabase.ts` as a thin alias to the same external-only client so login, reset password, JWT helpers, and table queries all share one session.
-- This keeps RLS/auth working correctly for `customers_prod`, `suppliers`, `supplier_items`, `job_materials`, and `user_settings`.
+**Action**: Verify `supplierService.ts` imports from `@/lib/supabase` (not the Lovable Cloud client). If it does, materials should work now. If there's still an issue, it's likely the auth race condition — I'll gate MaterialSearch on auth readiness.
 
-4. Keep demo data in your Supabase, not in a second backend
-- Leave the `_demo` / `_prod` table routing in `src/lib/modeTable.ts` as-is.
-- `dbDemoService`, `servicingService`, `variationsService`, `customerImportService`, `supplierService`, `supplierImportService`, `jobMaterialsService`, and `UserSettingsContext` already point at `@/lib/supabase`, so once step 1 is fixed they will all hit your Supabase automatically.
+### Issue 2: No option to choose demo mode after logout
 
-5. Remove app-level dependency on the managed generated client
-- Do not import `@/integrations/supabase/client` anywhere in runtime code.
-- Do not wire app logic to the generated managed types/client.
-- Leave platform-managed generated files physically present if required, but make them completely unused by the app.
+**Root cause**: In `App.tsx` line 82-84, when `!user` the app renders `<LoginPage />` directly. The `SplashPage` component (with "Sign In" / "Try Demo" buttons) exists but is never shown. After logout, users go straight to the login form with no way to enter demo mode.
 
-Expected result
+**Fix**: Replace the `<LoginPage />` fallback with a `SplashPage`-based flow:
+- When `!user && !isDemo`: show `SplashPage` with "Sign In" and "Try Demo" buttons
+- "Sign In" navigates to `LoginPage`
+- "Try Demo" sets `isDemo(true)` and proceeds to `ModePicker`
+- When `!user && isDemo`: show `ModePicker` (demo flow)
 
-- Login connects to your Supabase.
-- Customers connect to your Supabase.
-- Materials and supplier search connect to your Supabase.
-- Demo tables like `customers_demo`, `service_reminders_demo`, and `variations_demo` stay in your Supabase.
-- Production tables like `customers_prod`, `suppliers`, `supplier_items`, `job_materials`, and `user_settings` stay in your Supabase.
-- No app code will fall back to the managed backend anymore.
+**Files to change**:
 
-Technical details
+1. **`src/App.tsx`** (lines 80-88) — Replace the `!user` block:
+   - If `!isDemo` and no `user`: show `SplashPage` with handlers
+   - "Sign In" handler: set local state to show `LoginPage`
+   - "Try Demo" handler: call `setIsDemo(true)` 
+   - If `isDemo` and no `user`: fall through to `ModePicker`
+   - Add a "back" state so LoginPage's `onBack` returns to SplashPage
 
-- The main break is centralized in `src/lib/supabase.ts`: it currently prefers `VITE_SUPABASE_*` before `VITE_EXT_*`, and `src/lib/authSupabase.ts` re-exports that same client.
-- Because nearly all auth/data code already flows through this shared client, this is a focused wiring fix, not a schema rebuild.
-- No database migration is needed for this change.
-- I will keep the main shared client untyped against the generated managed schema so the app does not depend on the wrong database definitions.
+2. **`src/components/AppHeader.tsx`** (logout handler, line 30-33) — Already calls `sessionStorage.clear()` and `setIsDemo(false)`, which is correct. No change needed.
+
+### Result
+- After logout → SplashPage with "Sign In" / "Try Demo"
+- Materials search works in both Office and Tools modes via the now-corrected external Supabase client
+- No Lovable Cloud involvement anywhere
+
