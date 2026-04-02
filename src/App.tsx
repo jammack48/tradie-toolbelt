@@ -53,7 +53,8 @@ const queryClient = new QueryClient();
 
 function AppLayout() {
   const { mode, isWorkMode, isTimesheetOnlyMode, isIntroMode, clearMode } = useAppMode();
-  const { user, loading } = useAuth();
+  const { user, loading, isDemo, setIsDemo } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
   const { settings, loading: settingsLoading } = useUserSettings();
   const { setTheme, setIsDark } = useTheme();
 
