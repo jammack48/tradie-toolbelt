@@ -48,6 +48,7 @@ import InvoicePage from "./pages/InvoicePage";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import SplashPage from "./pages/SplashPage";
 
 const queryClient = new QueryClient();
 
