@@ -13,7 +13,7 @@ import { AppModeProvider, useAppMode } from "@/contexts/AppModeContext";
 import { DemoDataProvider } from "@/contexts/DemoDataContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { UserSettingsProvider, useUserSettings } from "@/contexts/UserSettingsContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { JobPrefixProvider } from "@/contexts/JobPrefixContext";
 import { BackendProvider } from "@/contexts/BackendContext";
