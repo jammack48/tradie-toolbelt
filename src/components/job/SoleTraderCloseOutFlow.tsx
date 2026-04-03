@@ -129,11 +129,11 @@ interface InvoiceLine {
 
 const ALL_STEPS = [
   { id: "status", label: "Job Status", icon: CheckCircle2 },
+  { id: "photos", label: "Initial Inspection", icon: Camera },
   { id: "checklist", label: "Checklist", icon: ClipboardList },
   { id: "materials", label: "Materials Used", icon: Package },
   { id: "time", label: "Labour", icon: Clock },
   { id: "paperwork", label: "Paperwork", icon: FileCheck },
-  { id: "photos", label: "Photos", icon: Camera },
   { id: "certificates", label: "Certificates", icon: Shield },
   { id: "invoice", label: "Invoice", icon: Receipt },
   { id: "done", label: "Done", icon: CheckCircle2 },
