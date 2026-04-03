@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { MaterialSearch } from "@/components/job/MaterialSearch";
 import { ServiceReminderSection } from "@/components/job/ServiceReminderSection";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
