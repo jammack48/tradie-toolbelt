@@ -21,42 +21,6 @@ export function ModePicker() {
   const canShowTimesheetMode = settings.showTimesheetMode || showAllModesForDev;
   const [subStep, setSubStep] = useState<SubStep>(null);
 
-  if (subStep === "sole-trader-setup") {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-6">
-          <div className="text-center">
-            <div className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center mx-auto mb-4">
-              <HardHat className="w-7 h-7 text-primary" />
-            </div>
-            <h1 className="text-xl font-bold text-foreground mb-1">On the Tools Setup</h1>
-          </div>
-
-          <div className="space-y-4 rounded-xl border-2 border-border bg-card p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <Label className="text-sm font-semibold text-card-foreground">Do you carry van stock?</Label>
-              </div>
-              <Switch checked={vanStock} onCheckedChange={setVanStock} />
-            </div>
-            <div className="border-t border-border" />
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <Label className="text-sm font-semibold text-card-foreground">Do you reconcile supplier documents?</Label>
-              </div>
-              <Switch checked={reconcileDocs} onCheckedChange={setReconcileDocs} />
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => setSubStep("manager-choice")}>Back</Button>
-            <Button className="flex-1 gap-2" onClick={handleSoleTraderConfirm}>Let's Go <ArrowRight className="w-4 h-4" /></Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (subStep === "manager-choice") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
