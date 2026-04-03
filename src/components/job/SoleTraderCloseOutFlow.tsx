@@ -597,7 +597,12 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
 
           {/* ===== CHECKLIST ===== */}
           {currentStep?.id === "checklist" && (
-            <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+            <div className="space-y-3">
+              <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+              <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => goToStep(step + 1)}>
+                No checklists needed — skip
+              </Button>
+            </div>
           )}
 
           {/* ===== CERTIFICATES ===== */}
