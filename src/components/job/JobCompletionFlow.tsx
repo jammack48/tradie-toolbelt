@@ -761,7 +761,6 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
               </Collapsible>
             </div>
           )}
-          )}
 
           {/* Compliance */}
           {currentStep?.id === "compliance" && (
