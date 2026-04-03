@@ -709,14 +709,14 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
                 <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("before")}>
                   <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                     <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                    <p className="text-xs text-muted-foreground">Before photos</p>
+                    <p className="text-xs text-muted-foreground">Initial Inspection</p>
                     <p className="text-xs font-medium text-primary mt-1">Tap to add</p>
                   </CardContent>
                 </Card>
                 <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("after")}>
                   <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                     <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                    <p className="text-xs text-muted-foreground">After photos</p>
+                    <p className="text-xs text-muted-foreground">Completion Photos</p>
                     <p className="text-xs font-medium text-primary mt-1">Tap to add</p>
                   </CardContent>
                 </Card>
