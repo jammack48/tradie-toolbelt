@@ -379,7 +379,7 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
               <div className="space-y-3">
                 <Label className="text-sm font-semibold">Is this job finished?</Label>
                 <div className="flex gap-2">
-                  <button onClick={() => setJobFinished(true)} className={cn("flex-1 py-3 rounded-lg border-2 text-sm font-medium transition-all", jobFinished ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:bg-accent")}>
+                  <button onClick={() => { setJobFinished(true); setTimeout(() => setStep(s => s + 1), 300); }} className={cn("flex-1 py-3 rounded-lg border-2 text-sm font-medium transition-all", jobFinished ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:bg-accent")}>
                     <CheckCircle2 className="w-5 h-5 mx-auto mb-1" /> Job Finished
                   </button>
                   <button onClick={() => setJobFinished(false)} className={cn("flex-1 py-3 rounded-lg border-2 text-sm font-medium transition-all", !jobFinished ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:bg-accent")}>
