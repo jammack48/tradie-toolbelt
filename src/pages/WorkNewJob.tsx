@@ -184,7 +184,28 @@ function CustomerPicker({
       </div>
 
       <div className="space-y-2">
-        <Label className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /> {requireDescription ? "Work done" : "Description (optional)"}</Label>
+        <div className="flex items-center justify-between">
+          <Label className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /> {requireDescription ? "Work done" : "Description (optional)"}</Label>
+          {showDictation && (
+            <button
+              type="button"
+              onClick={toggleDictation}
+              className={cn(
+                "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full transition-colors",
+                isListening ? "bg-primary text-primary-foreground animate-pulse" : "bg-muted text-muted-foreground hover:bg-accent"
+              )}
+            >
+              {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              {isListening ? "Stop" : "Dictate"}
+            </button>
+          )}
+        </div>
+        {isListening && (
+          <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary">
+            <span className="font-medium">🎙️ Listening…</span>
+            {interimTranscript && <span className="ml-1 text-primary/80">"{interimTranscript}"</span>}
+          </div>
+        )}
         <Textarea
           value={description}
           onChange={e => setDescription(e.target.value)}
