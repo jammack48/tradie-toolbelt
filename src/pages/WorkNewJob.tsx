@@ -45,6 +45,7 @@ function CustomerPicker({
   isNewCustomer, setIsNewCustomer,
   customers,
   requireDescription = false,
+  showDictation = false,
 }: {
   customer: string; setCustomer: (v: string) => void;
   address: string; setAddress: (v: string) => void;
@@ -52,9 +53,37 @@ function CustomerPicker({
   isNewCustomer: boolean; setIsNewCustomer: (v: boolean) => void;
   customers: CustomerOption[];
   requireDescription?: boolean;
+  showDictation?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState("");
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => { if (recognitionRef.current) recognitionRef.current.stop(); };
+  }, []);
+
+  const toggleDictation = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    if (isListening && recognitionRef.current) { recognitionRef.current.stop(); setIsListening(false); return; }
+    const r = new SR();
+    r.continuous = true; r.interimResults = true; r.lang = "en-AU";
+    r.onresult = (e: any) => {
+      let final = "", interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      setInterimTranscript(interim.trim());
+      if (final) { setDescription((prev: string) => (prev ? `${prev} ${final.trim()}` : final.trim())); setInterimTranscript(""); }
+    };
+    r.onerror = () => setIsListening(false);
+    r.onend = () => { setIsListening(false); setInterimTranscript(""); };
+    recognitionRef.current = r; r.start(); setIsListening(true);
+  };
 
   const filtered = useMemo(() => {
     if (!search.trim()) return customers;
