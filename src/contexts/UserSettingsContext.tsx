@@ -23,6 +23,9 @@ export interface UserSettings {
   isDark: boolean;
   toolbarPosition: ToolbarPosition;
   businessProfile: BusinessProfile | null;
+  vanStock: boolean;
+  reconcileDocs: boolean;
+  employeeCanQuote: boolean;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -34,6 +37,9 @@ const DEFAULT_SETTINGS: UserSettings = {
   isDark: true,
   toolbarPosition: "left",
   businessProfile: null,
+  vanStock: false,
+  reconcileDocs: false,
+  employeeCanQuote: false,
 };
 
 interface UserSettingsContextType {
