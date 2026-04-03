@@ -67,7 +67,7 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
       setLoading(true);
       const { data, error } = await supabase
         .from("user_settings")
-        .select("tutorials_enabled, show_timesheet_mode, show_tools_mode, show_employee_mode, theme, is_dark, toolbar_position, business_profile, van_stock, reconcile_docs, employee_can_quote")
+        .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -84,9 +84,9 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
             isDark: data.is_dark == null ? true : Boolean(data.is_dark),
             toolbarPosition: (data.toolbar_position as ToolbarPosition) || "left",
             businessProfile: data.business_profile ?? null,
-            vanStock: Boolean(data.van_stock),
-            reconcileDocs: Boolean(data.reconcile_docs),
-            employeeCanQuote: Boolean(data.employee_can_quote),
+            vanStock: data.van_stock != null ? Boolean(data.van_stock) : false,
+            reconcileDocs: data.reconcile_docs != null ? Boolean(data.reconcile_docs) : false,
+            employeeCanQuote: data.employee_can_quote != null ? Boolean(data.employee_can_quote) : false,
           });
         }
         setLoading(false);
@@ -119,9 +119,8 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
     });
 
     if (error) {
+      console.warn("Failed to save user settings (columns may not exist yet)", error);
       setSettings(previous);
-      console.error("Failed to save user settings", error);
-      throw error;
     }
   };
 
