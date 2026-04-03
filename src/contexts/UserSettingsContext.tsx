@@ -112,6 +112,9 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
       is_dark: next.isDark,
       toolbar_position: next.toolbarPosition,
       business_profile: next.businessProfile,
+      van_stock: next.vanStock,
+      reconcile_docs: next.reconcileDocs,
+      employee_can_quote: next.employeeCanQuote,
       updated_at: new Date().toISOString(),
     });
 
