@@ -702,7 +702,7 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
             </div>
           )}
 
-          {/* Photos */}
+          {/* Photos & Checklist */}
           {currentStep?.id === "photos" && (
             <div className="space-y-3">
               <Label>Job photos</Label>
@@ -745,17 +745,22 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
                   </div>
                 </div>
               )}
+
+              {/* Collapsible checklist */}
+              <Collapsible open={checklistOpen} onOpenChange={setChecklistOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full gap-2 text-muted-foreground">
+                    <ClipboardList className="w-4 h-4" />
+                    Checklist (optional)
+                    {checklistOpen ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           )}
-
-          {/* Checklist */}
-          {currentStep?.id === "checklist" && (
-            <div className="space-y-3">
-              <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
-              <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setStep(s => s + 1)}>
-                No checklists needed — skip
-              </Button>
-            </div>
           )}
 
           {/* Compliance */}
