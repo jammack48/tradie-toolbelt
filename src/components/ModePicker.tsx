@@ -38,7 +38,7 @@ export function ModePicker() {
             </button>
 
             {canShowToolsMode && (
-              <button onClick={() => setSubStep("sole-trader-setup")} className="group rounded-xl border-2 border-border bg-card p-5 text-left">
+              <button onClick={() => setMode("sole-trader")} className="group rounded-xl border-2 border-border bg-card p-5 text-left">
                 <div className="flex items-center gap-4">
                   <HardHat className="w-6 h-6 text-primary" />
                   <div><h2 className="text-base font-bold text-card-foreground">On the Tools</h2></div>
