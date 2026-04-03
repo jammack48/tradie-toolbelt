@@ -233,10 +233,10 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
       }
       if (["jobsheet", "send", "done"].includes(s.id)) return false;
       // Paperwork only if reconcileDocs pref is on
-      if (s.id === "paperwork" && !soleTraderPrefs.reconcileDocs) return false;
+      if (s.id === "paperwork" && !settings.reconcileDocs) return false;
       return true;
     });
-  }, [introMode, jobFinished, invoiceNow, soleTraderPrefs.reconcileDocs]);
+  }, [introMode, jobFinished, invoiceNow, settings.reconcileDocs]);
 
   const currentStep = activeSteps[step];
   const canNext = step < activeSteps.length - 1;
