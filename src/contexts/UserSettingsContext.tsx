@@ -48,7 +48,9 @@ interface UserSettingsContextType {
   saveSettings: (updates: Partial<UserSettings>) => Promise<void>;
 }
 
-const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined);
+const CTX_KEY = "__UserSettingsContext__";
+const UserSettingsContext: React.Context<UserSettingsContextType | undefined> =
+  (globalThis as any)[CTX_KEY] ??= createContext<UserSettingsContextType | undefined>(undefined);
 
 export function UserSettingsProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
