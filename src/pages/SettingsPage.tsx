@@ -477,6 +477,45 @@ function SettingsContent({ tab }: { tab: SettingsTab }) {
         {["Admin — You", "Tech — Josh Turner", "Tech — Maria Santos", "Apprentice — Jake Hill"].map((m) => (
           <div key={m} className="p-3 rounded-lg bg-card border border-border text-sm text-card-foreground">{m}</div>
         ))}
+
+        <h3 className="text-sm font-semibold text-card-foreground pt-4">On the Tools Settings</h3>
+        <div className="p-3 rounded-lg bg-card border border-border space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm text-card-foreground">Carry van stock</p>
+              <p className="text-xs text-muted-foreground">Track items used from the van and auto-generate restock POs</p>
+            </div>
+            <Switch
+              checked={settings.vanStock}
+              disabled={!user}
+              onCheckedChange={(v) => void saveSettingWithFeedback({ vanStock: v })}
+            />
+          </div>
+          <div className="border-t border-border" />
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm text-card-foreground">Reconcile supplier docs</p>
+              <p className="text-xs text-muted-foreground">Show paperwork step in job close-out for attaching receipts</p>
+            </div>
+            <Switch
+              checked={settings.reconcileDocs}
+              disabled={!user}
+              onCheckedChange={(v) => void saveSettingWithFeedback({ reconcileDocs: v })}
+            />
+          </div>
+          <div className="border-t border-border" />
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm text-card-foreground">Employees can quote</p>
+              <p className="text-xs text-muted-foreground">Allow employees to create quotes (exposes pricing info)</p>
+            </div>
+            <Switch
+              checked={settings.employeeCanQuote}
+              disabled={!user}
+              onCheckedChange={(v) => void saveSettingWithFeedback({ employeeCanQuote: v })}
+            />
+          </div>
+        </div>
       </div>
     ),
     integrations: (

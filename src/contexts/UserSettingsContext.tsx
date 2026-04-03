@@ -23,6 +23,9 @@ export interface UserSettings {
   isDark: boolean;
   toolbarPosition: ToolbarPosition;
   businessProfile: BusinessProfile | null;
+  vanStock: boolean;
+  reconcileDocs: boolean;
+  employeeCanQuote: boolean;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -34,6 +37,9 @@ const DEFAULT_SETTINGS: UserSettings = {
   isDark: true,
   toolbarPosition: "left",
   businessProfile: null,
+  vanStock: false,
+  reconcileDocs: false,
+  employeeCanQuote: false,
 };
 
 interface UserSettingsContextType {
@@ -61,7 +67,7 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
       setLoading(true);
       const { data, error } = await supabase
         .from("user_settings")
-        .select("tutorials_enabled, show_timesheet_mode, show_tools_mode, show_employee_mode, theme, is_dark, toolbar_position, business_profile")
+        .select("tutorials_enabled, show_timesheet_mode, show_tools_mode, show_employee_mode, theme, is_dark, toolbar_position, business_profile, van_stock, reconcile_docs, employee_can_quote")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -78,6 +84,9 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
             isDark: data.is_dark == null ? true : Boolean(data.is_dark),
             toolbarPosition: (data.toolbar_position as ToolbarPosition) || "left",
             businessProfile: data.business_profile ?? null,
+            vanStock: Boolean(data.van_stock),
+            reconcileDocs: Boolean(data.reconcile_docs),
+            employeeCanQuote: Boolean(data.employee_can_quote),
           });
         }
         setLoading(false);
@@ -103,6 +112,9 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
       is_dark: next.isDark,
       toolbar_position: next.toolbarPosition,
       business_profile: next.businessProfile,
+      van_stock: next.vanStock,
+      reconcile_docs: next.reconcileDocs,
+      employee_can_quote: next.employeeCanQuote,
       updated_at: new Date().toISOString(),
     });
 
