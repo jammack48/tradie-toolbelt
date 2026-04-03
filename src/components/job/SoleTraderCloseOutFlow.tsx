@@ -484,7 +484,7 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
           {/* ===== MATERIALS USED ===== */}
           {currentStep?.id === "materials" && (
             <div className="space-y-3">
-              {soleTraderPrefs.vanStock && !introMode ? (
+              {settings.vanStock && !introMode ? (
                 <p className="text-sm text-muted-foreground">Mark items as <strong>Van Stock</strong> or <strong>Supplier</strong>.</p>
               ) : (
                 <p className="text-sm text-muted-foreground">List the parts and materials used on this job.</p>
@@ -498,7 +498,7 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
                       <Input type="number" className="w-16 h-7 text-xs text-right" value={p.quantity} disabled={!p.used} onChange={(e) => setParts((prev) => prev.map((pp, ii) => ii === i ? { ...pp, quantity: Number(e.target.value) || 0 } : pp))} />
                       <span className="text-xs text-muted-foreground w-8">{p.unit}</span>
                     </div>
-                    {p.used && soleTraderPrefs.vanStock && !introMode && (
+                    {p.used && settings.vanStock && !introMode && (
                       <div className="flex items-center gap-1.5 pl-6 flex-wrap">
                         <button type="button" onClick={() => setParts((prev) => prev.map((pp, ii) => ii === i ? { ...pp, source: "van-stock" } : pp))} className={cn("flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors", p.source === "van-stock" ? "bg-primary/15 text-primary ring-1 ring-primary/30" : "bg-muted text-muted-foreground hover:bg-accent")}>
                           <Truck className="w-3 h-3" /> Van Stock
@@ -513,7 +513,7 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
                         )}
                       </div>
                     )}
-                    {p.used && soleTraderPrefs.vanStock && !introMode && p.source === "supplier" && (
+                    {p.used && settings.vanStock && !introMode && p.source === "supplier" && (
                       <Input className="h-7 text-xs ml-6 w-auto bg-white dark:bg-[hsl(30,12%,24%)] border-2 border-border text-gray-900 dark:text-gray-100 placeholder:text-gray-400" placeholder="Supplier name..." value={p.supplierName || ""} onChange={(e) => setParts((prev) => prev.map((pp, ii) => ii === i ? { ...pp, supplierName: e.target.value } : pp))} />
                     )}
                   </div>
@@ -542,7 +542,7 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
               </div>
 
               {/* Inline Restock PO if vanStock is on and items used from van */}
-              {soleTraderPrefs.vanStock && !introMode && vanStockUsed.length > 0 && (
+              {settings.vanStock && !introMode && vanStockUsed.length > 0 && (
                 <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3 mt-2">
                   <div className="flex items-center gap-2"><ClipboardList className="w-4 h-4 text-primary" /><p className="text-sm font-bold text-foreground">Restock PO</p></div>
                   <div className="border-t border-border pt-2 space-y-1">
