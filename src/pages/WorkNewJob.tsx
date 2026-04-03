@@ -537,6 +537,7 @@ export default function WorkNewJob() {
             description={description} setDescription={setDescription}
             isNewCustomer={isNewCustomer} setIsNewCustomer={setIsNewCustomer}
             customers={customerOptions}
+            showDictation
           />
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1 h-12 gap-2" disabled={!detailsValid} onClick={handleStartNow}>
