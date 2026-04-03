@@ -5,9 +5,10 @@ type AppMode = "manage" | "work" | "sole-trader" | "timesheet" | "intro" | null;
 export interface SoleTraderPrefs {
   vanStock: boolean;
   reconcileDocs: boolean;
+  employeeCanQuote: boolean;
 }
 
-const DEFAULT_PREFS: SoleTraderPrefs = { vanStock: false, reconcileDocs: false };
+const DEFAULT_PREFS: SoleTraderPrefs = { vanStock: false, reconcileDocs: false, employeeCanQuote: false };
 
 interface AppModeContextType {
   mode: AppMode;

@@ -157,12 +157,31 @@ export default function WorkHome() {
       </div>
 
       {/* Floating New Job button */}
-      <button
-        onClick={() => navigate("/new-job")}
-        className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
+      <Popover open={fabOpen} onOpenChange={setFabOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-6 h-6" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent side="top" align="end" className="w-48 p-1.5">
+          <button
+            onClick={() => { setFabOpen(false); navigate("/new-job"); }}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+          >
+            <Wrench className="w-4 h-4 text-primary" /> Charge Up
+          </button>
+          {showQuoteOption && (
+            <button
+              onClick={() => { setFabOpen(false); navigate("/quote/new"); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-accent transition-colors"
+            >
+              <FileText className="w-4 h-4 text-primary" /> New Quote
+            </button>
+          )}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
