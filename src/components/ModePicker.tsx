@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 
-type SubStep = null | "manager-choice" | "sole-trader-setup";
+type SubStep = null | "manager-choice";
 
 export function ModePicker() {
   const { setMode, setSoleTraderPrefs } = useAppMode();
