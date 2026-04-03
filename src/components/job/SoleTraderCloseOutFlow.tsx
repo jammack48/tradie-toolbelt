@@ -574,7 +574,7 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
             </div>
           )}
 
-          {/* ===== PHOTOS ===== */}
+          {/* ===== PHOTOS & CHECKLIST ===== */}
           {currentStep?.id === "photos" && (
             <div className="space-y-3">
               <Label>Job photos</Label>
@@ -593,16 +593,20 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
                 </div>
               )}
               {jobPhotos.length > 0 && (<div className="space-y-2"><p className="text-xs text-muted-foreground">{jobPhotos.length} photo(s) added</p><div className="flex gap-2 flex-wrap">{jobPhotos.map((photo) => (<div key={photo.id} className="relative"><img src={photo.dataUrl} alt={photo.type} className="w-16 h-16 rounded-lg object-cover border border-border" /><span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[8px] px-1 rounded-full uppercase">{photo.type[0]}</span></div>))}</div></div>)}
-            </div>
-          )}
 
-          {/* ===== CHECKLIST ===== */}
-          {currentStep?.id === "checklist" && (
-            <div className="space-y-3">
-              <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
-              <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => goToStep(step + 1)}>
-                No checklists needed — skip
-              </Button>
+              {/* Collapsible checklist */}
+              <Collapsible open={checklistOpen} onOpenChange={setChecklistOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full gap-2 text-muted-foreground">
+                    <ClipboardList className="w-4 h-4" />
+                    Checklist (optional)
+                    {checklistOpen ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           )}
 
