@@ -119,9 +119,8 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
     });
 
     if (error) {
+      console.warn("Failed to save user settings (columns may not exist yet)", error);
       setSettings(previous);
-      console.error("Failed to save user settings", error);
-      throw error;
     }
   };
 
