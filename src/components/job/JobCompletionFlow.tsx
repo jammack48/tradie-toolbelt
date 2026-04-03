@@ -30,12 +30,12 @@ interface JobCompletionFlowProps {
 
 const STEPS = [
   { id: "status", label: "Job Status", icon: CheckCircle2 },
+  { id: "photos", label: "Initial Inspection", icon: Camera },
   { id: "checklist", label: "Checklist", icon: ClipboardList },
   { id: "jobsheet", label: "Job Sheet", icon: FileText },
   { id: "parts", label: "Parts Used", icon: Package },
   { id: "time", label: "Time", icon: Clock },
   { id: "po-review", label: "Restock PO", icon: ClipboardList },
-  { id: "photos", label: "Photos", icon: Camera },
   { id: "compliance", label: "Compliance", icon: Shield },
 ];
 
