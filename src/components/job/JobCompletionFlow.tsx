@@ -127,6 +127,7 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
   const { updateJobStage } = useDemoData();
   const [step, setStep] = useState(resumeAfterBooking ? 1 : 0);
   const [jobFinished, setJobFinished] = useState(true);
+  const [checklistOpen, setChecklistOpen] = useState(false);
 
   const initialJobSheet = useMemo(() => {
     const existingDescription = job.description?.trim();
