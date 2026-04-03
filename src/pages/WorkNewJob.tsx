@@ -78,7 +78,7 @@ function CustomerPicker({
         else interim += e.results[i][0].transcript;
       }
       setInterimTranscript(interim.trim());
-      if (final) { setDescription((prev: string) => (prev ? `${prev} ${final.trim()}` : final.trim())); setInterimTranscript(""); }
+      if (final) { setDescription(description ? `${description} ${final.trim()}` : final.trim()); setInterimTranscript(""); }
     };
     r.onerror = () => setIsListening(false);
     r.onend = () => { setIsListening(false); setInterimTranscript(""); };
