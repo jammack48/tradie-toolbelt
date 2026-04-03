@@ -21,6 +21,9 @@ const CURRENT_STAFF = "Dave";
 export default function WorkHome() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { mode, soleTraderPrefs } = useAppMode();
+  const [fabOpen, setFabOpen] = useState(false);
+  const showQuoteOption = mode === "sole-trader" || mode === "manage" || soleTraderPrefs.employeeCanQuote;
   const [materialsOpen, setMaterialsOpen] = useState(false);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [viewDays, setViewDays] = useState<1 | 3 | 5>(3);
