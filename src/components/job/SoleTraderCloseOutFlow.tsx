@@ -4,7 +4,7 @@ import {
   Check, ChevronLeft, ChevronRight, Camera, Clock, Package, FileText, Shield,
   Truck, ShoppingCart, ClipboardList, Mic, MicOff, Maximize2, Minimize2,
   DollarSign, Receipt, Send, CheckCircle2, Plus, Trash2, Eye, EyeOff,
-  AlertTriangle, Mail, MessageSquare, CalendarDays, FileCheck, Sparkles, Loader2,
+  AlertTriangle, Mail, MessageSquare, CalendarDays, FileCheck, Sparkles, Loader2, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { MaterialSearch } from "@/components/job/MaterialSearch";
 import { ServiceReminderSection } from "@/components/job/ServiceReminderSection";
