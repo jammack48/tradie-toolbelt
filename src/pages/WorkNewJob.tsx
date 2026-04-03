@@ -1,6 +1,6 @@
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, MapPin, User, FileText, Check, Plus, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, User, FileText, Check, Plus, Search, Mic, MicOff } from "lucide-react";
 import { format, addDays, startOfWeek, isToday } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ function CustomerPicker({
   isNewCustomer, setIsNewCustomer,
   customers,
   requireDescription = false,
+  showDictation = false,
 }: {
   customer: string; setCustomer: (v: string) => void;
   address: string; setAddress: (v: string) => void;
@@ -52,9 +53,37 @@ function CustomerPicker({
   isNewCustomer: boolean; setIsNewCustomer: (v: boolean) => void;
   customers: CustomerOption[];
   requireDescription?: boolean;
+  showDictation?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState("");
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => { if (recognitionRef.current) recognitionRef.current.stop(); };
+  }, []);
+
+  const toggleDictation = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    if (isListening && recognitionRef.current) { recognitionRef.current.stop(); setIsListening(false); return; }
+    const r = new SR();
+    r.continuous = true; r.interimResults = true; r.lang = "en-AU";
+    r.onresult = (e: any) => {
+      let final = "", interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      setInterimTranscript(interim.trim());
+      if (final) { setDescription(description ? `${description} ${final.trim()}` : final.trim()); setInterimTranscript(""); }
+    };
+    r.onerror = () => setIsListening(false);
+    r.onend = () => { setIsListening(false); setInterimTranscript(""); };
+    recognitionRef.current = r; r.start(); setIsListening(true);
+  };
 
   const filtered = useMemo(() => {
     if (!search.trim()) return customers;
@@ -155,7 +184,28 @@ function CustomerPicker({
       </div>
 
       <div className="space-y-2">
-        <Label className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /> {requireDescription ? "Work done" : "Description (optional)"}</Label>
+        <div className="flex items-center justify-between">
+          <Label className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /> {requireDescription ? "Work done" : "Description (optional)"}</Label>
+          {showDictation && (
+            <button
+              type="button"
+              onClick={toggleDictation}
+              className={cn(
+                "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full transition-colors",
+                isListening ? "bg-primary text-primary-foreground animate-pulse" : "bg-muted text-muted-foreground hover:bg-accent"
+              )}
+            >
+              {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              {isListening ? "Stop" : "Dictate"}
+            </button>
+          )}
+        </div>
+        {isListening && (
+          <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary">
+            <span className="font-medium">🎙️ Listening…</span>
+            {interimTranscript && <span className="ml-1 text-primary/80">"{interimTranscript}"</span>}
+          </div>
+        )}
         <Textarea
           value={description}
           onChange={e => setDescription(e.target.value)}
@@ -469,6 +519,7 @@ export default function WorkNewJob() {
             isNewCustomer={isNewCustomer} setIsNewCustomer={setIsNewCustomer}
             customers={customerOptions}
             requireDescription
+            showDictation
           />
           <Button className="w-full h-12 gap-2" disabled={!introDetailsValid} onClick={handleIntroComplete}>
             <Check className="w-4 h-4" /> Job Ready to Invoice
@@ -486,6 +537,7 @@ export default function WorkNewJob() {
             description={description} setDescription={setDescription}
             isNewCustomer={isNewCustomer} setIsNewCustomer={setIsNewCustomer}
             customers={customerOptions}
+            showDictation
           />
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1 h-12 gap-2" disabled={!detailsValid} onClick={handleStartNow}>

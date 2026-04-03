@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ChevronLeft, ChevronRight, Camera, Clock, Package, FileText, Shield, RotateCcw, FileImage, Truck, ShoppingCart, ClipboardList, Mic, MicOff, Maximize2, Minimize2, CheckCircle2, CalendarDays, Sparkles, Loader2 } from "lucide-react";
+import { MaterialSearch } from "@/components/job/MaterialSearch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,12 +30,12 @@ interface JobCompletionFlowProps {
 
 const STEPS = [
   { id: "status", label: "Job Status", icon: CheckCircle2 },
+  { id: "photos", label: "Initial Inspection", icon: Camera },
   { id: "checklist", label: "Checklist", icon: ClipboardList },
   { id: "jobsheet", label: "Job Sheet", icon: FileText },
   { id: "parts", label: "Parts Used", icon: Package },
   { id: "time", label: "Time", icon: Clock },
   { id: "po-review", label: "Restock PO", icon: ClipboardList },
-  { id: "photos", label: "Photos", icon: Camera },
   { id: "compliance", label: "Compliance", icon: Shield },
 ];
 
@@ -378,7 +379,7 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
               <div className="space-y-3">
                 <Label className="text-sm font-semibold">Is this job finished?</Label>
                 <div className="flex gap-2">
-                  <button onClick={() => setJobFinished(true)} className={cn("flex-1 py-3 rounded-lg border-2 text-sm font-medium transition-all", jobFinished ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:bg-accent")}>
+                  <button onClick={() => { setJobFinished(true); setTimeout(() => setStep(s => s + 1), 300); }} className={cn("flex-1 py-3 rounded-lg border-2 text-sm font-medium transition-all", jobFinished ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:bg-accent")}>
                     <CheckCircle2 className="w-5 h-5 mx-auto mb-1" /> Job Finished
                   </button>
                   <button onClick={() => setJobFinished(false)} className={cn("flex-1 py-3 rounded-lg border-2 text-sm font-medium transition-all", !jobFinished ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:bg-accent")}>
@@ -603,12 +604,25 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
                 ))}
               </div>
 
-              {/* Add extra item */}
+              {/* Add extra item via Supabase search */}
               <div className="space-y-1.5 pt-1 border-t border-border">
-                <Label className="text-xs">Add extra item</Label>
-                <div className="flex gap-2">
+                <Label className="text-xs">Search pricebook or add manually</Label>
+                <MaterialSearch onSelect={(item) => {
+                  setParts((prev) => [...prev, {
+                    id: `extra-${Date.now()}`,
+                    name: item.name,
+                    quantity: 1,
+                    unit: "pcs",
+                    unitPrice: item.sell_price,
+                    supplier: item.supplier_name || "",
+                    used: true,
+                    source: "supplier" as const,
+                    supplierName: item.supplier_name,
+                  }]);
+                }} />
+                <div className="flex gap-2 mt-1.5">
                   <Input
-                    placeholder="Item name..."
+                    placeholder="Or type item name..."
                     value={extraPartName}
                     onChange={(e) => setExtraPartName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddExtra(); } }}
@@ -695,14 +709,14 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
                 <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("before")}>
                   <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                     <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                    <p className="text-xs text-muted-foreground">Before photos</p>
+                    <p className="text-xs text-muted-foreground">Initial Inspection</p>
                     <p className="text-xs font-medium text-primary mt-1">Tap to add</p>
                   </CardContent>
                 </Card>
                 <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("after")}>
                   <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                     <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                    <p className="text-xs text-muted-foreground">After photos</p>
+                    <p className="text-xs text-muted-foreground">Completion Photos</p>
                     <p className="text-xs font-medium text-primary mt-1">Tap to add</p>
                   </CardContent>
                 </Card>
@@ -735,7 +749,12 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
 
           {/* Checklist */}
           {currentStep?.id === "checklist" && (
-            <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+            <div className="space-y-3">
+              <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+              <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setStep(s => s + 1)}>
+                No checklists needed — skip
+              </Button>
+            </div>
           )}
 
           {/* Compliance */}

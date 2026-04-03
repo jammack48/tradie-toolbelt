@@ -6,6 +6,7 @@ import {
   DollarSign, Receipt, Send, CheckCircle2, Plus, Trash2, Eye, EyeOff,
   AlertTriangle, Mail, MessageSquare, CalendarDays, FileCheck, Sparkles, Loader2,
 } from "lucide-react";
+import { MaterialSearch } from "@/components/job/MaterialSearch";
 import { ServiceReminderSection } from "@/components/job/ServiceReminderSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -128,11 +129,11 @@ interface InvoiceLine {
 
 const ALL_STEPS = [
   { id: "status", label: "Job Status", icon: CheckCircle2 },
+  { id: "photos", label: "Initial Inspection", icon: Camera },
   { id: "checklist", label: "Checklist", icon: ClipboardList },
   { id: "materials", label: "Materials Used", icon: Package },
   { id: "time", label: "Labour", icon: Clock },
   { id: "paperwork", label: "Paperwork", icon: FileCheck },
-  { id: "photos", label: "Photos", icon: Camera },
   { id: "certificates", label: "Certificates", icon: Shield },
   { id: "invoice", label: "Invoice", icon: Receipt },
   { id: "done", label: "Done", icon: CheckCircle2 },
@@ -368,7 +369,7 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
               <div className="space-y-3">
                 <Label className="text-sm font-semibold">Is this job finished?</Label>
                 <div className="flex gap-2">
-                  <button onClick={() => setJobFinished(true)} className={cn("flex-1 py-3 rounded-lg border-2 text-sm font-medium transition-all", jobFinished ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:bg-accent")}>
+                  <button onClick={() => { setJobFinished(true); setTimeout(() => goToStep(step + 1), 300); }} className={cn("flex-1 py-3 rounded-lg border-2 text-sm font-medium transition-all", jobFinished ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:bg-accent")}>
                     <CheckCircle2 className="w-5 h-5 mx-auto mb-1" /> Job Finished
                   </button>
                   {!introMode && (
@@ -518,9 +519,22 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
                 ))}
               </div>
               <div className="space-y-1.5 pt-1 border-t border-border">
-                <Label className="text-xs">Add extra item</Label>
-                <div className="flex gap-2">
-                  <Input placeholder="Item name..." value={extraPartName} onChange={(e) => setExtraPartName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddExtra(); } }} className="flex-1" />
+                <Label className="text-xs">Search pricebook or add manually</Label>
+                <MaterialSearch onSelect={(item) => {
+                  setParts((prev) => [...prev, {
+                    id: `extra-${Date.now()}`,
+                    name: item.name,
+                    quantity: 1,
+                    unit: "pcs",
+                    unitPrice: item.sell_price,
+                    supplier: item.supplier_name || "",
+                    used: true,
+                    source: "supplier" as const,
+                    supplierName: item.supplier_name,
+                  }]);
+                }} />
+                <div className="flex gap-2 mt-1.5">
+                  <Input placeholder="Or type item name..." value={extraPartName} onChange={(e) => setExtraPartName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddExtra(); } }} className="flex-1" />
                   <Input type="number" placeholder="Qty" value={extraPartQty} onChange={(e) => setExtraPartQty(e.target.value)} className="w-16" />
                   <Button type="button" size="sm" onClick={handleAddExtra} disabled={!extraPartName.trim()}>Add</Button>
                 </div>
@@ -564,8 +578,8 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
             <div className="space-y-3">
               <Label>Job photos</Label>
               <div className="grid grid-cols-2 gap-2">
-                <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("before")}><CardContent className="p-6 flex flex-col items-center justify-center text-center"><Camera className="w-8 h-8 text-muted-foreground mb-2" /><p className="text-xs text-muted-foreground">Before photos</p><p className="text-xs font-medium text-primary mt-1">Tap to add</p></CardContent></Card>
-                <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("after")}><CardContent className="p-6 flex flex-col items-center justify-center text-center"><Camera className="w-8 h-8 text-muted-foreground mb-2" /><p className="text-xs text-muted-foreground">After photos</p><p className="text-xs font-medium text-primary mt-1">Tap to add</p></CardContent></Card>
+                <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("before")}><CardContent className="p-6 flex flex-col items-center justify-center text-center"><Camera className="w-8 h-8 text-muted-foreground mb-2" /><p className="text-xs text-muted-foreground">Initial Inspection</p><p className="text-xs font-medium text-primary mt-1">Tap to add</p></CardContent></Card>
+                <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("after")}><CardContent className="p-6 flex flex-col items-center justify-center text-center"><Camera className="w-8 h-8 text-muted-foreground mb-2" /><p className="text-xs text-muted-foreground">Completion Photos</p><p className="text-xs font-medium text-primary mt-1">Tap to add</p></CardContent></Card>
               </div>
               {activePhotoType && (
                 <div className="rounded-lg border border-border p-3 bg-accent/20 space-y-2">
@@ -583,7 +597,12 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
 
           {/* ===== CHECKLIST ===== */}
           {currentStep?.id === "checklist" && (
-            <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+            <div className="space-y-3">
+              <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+              <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => goToStep(step + 1)}>
+                No checklists needed — skip
+              </Button>
+            </div>
           )}
 
           {/* ===== CERTIFICATES ===== */}

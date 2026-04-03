@@ -24,7 +24,7 @@ export function ModePicker() {
   const [reconcileDocs, setReconcileDocs] = useState(false);
 
   const handleSoleTraderConfirm = () => {
-    setSoleTraderPrefs({ vanStock, reconcileDocs });
+    setSoleTraderPrefs({ vanStock, reconcileDocs, employeeCanQuote: false });
     setMode("sole-trader");
   };
 
