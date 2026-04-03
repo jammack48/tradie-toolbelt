@@ -519,6 +519,7 @@ export default function WorkNewJob() {
             isNewCustomer={isNewCustomer} setIsNewCustomer={setIsNewCustomer}
             customers={customerOptions}
             requireDescription
+            showDictation
           />
           <Button className="w-full h-12 gap-2" disabled={!introDetailsValid} onClick={handleIntroComplete}>
             <Check className="w-4 h-4" /> Job Ready to Invoice
