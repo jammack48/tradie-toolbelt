@@ -6,13 +6,15 @@ import { DayStrip } from "@/components/schedule/DayStrip";
 import { DayViewToggle } from "@/components/schedule/DayViewToggle";
 import { TimeGrid3Day } from "@/components/schedule/TimeGrid3Day";
 import { generateWeekJobs } from "@/components/schedule/scheduleData";
-import { Package, ChevronUp, ChevronDown, Plus } from "lucide-react";
+import { Package, ChevronUp, ChevronDown, Plus, Wrench, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Card, CardContent } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getJobDetail } from "@/data/dummyJobDetails";
 import { cn } from "@/lib/utils";
 import { TutorialBanner } from "@/components/TutorialBanner";
+import { useAppMode } from "@/contexts/AppModeContext";
 
 const CURRENT_STAFF = "Dave";
 
