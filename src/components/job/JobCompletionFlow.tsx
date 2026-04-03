@@ -749,7 +749,12 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
 
           {/* Checklist */}
           {currentStep?.id === "checklist" && (
-            <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+            <div className="space-y-3">
+              <ChecklistStepInline category="completion" onComplete={(cl) => onChecklistComplete?.(cl)} />
+              <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setStep(s => s + 1)}>
+                No checklists needed — skip
+              </Button>
+            </div>
           )}
 
           {/* Compliance */}
