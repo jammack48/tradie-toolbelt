@@ -578,8 +578,8 @@ export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBoo
             <div className="space-y-3">
               <Label>Job photos</Label>
               <div className="grid grid-cols-2 gap-2">
-                <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("before")}><CardContent className="p-6 flex flex-col items-center justify-center text-center"><Camera className="w-8 h-8 text-muted-foreground mb-2" /><p className="text-xs text-muted-foreground">Before photos</p><p className="text-xs font-medium text-primary mt-1">Tap to add</p></CardContent></Card>
-                <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("after")}><CardContent className="p-6 flex flex-col items-center justify-center text-center"><Camera className="w-8 h-8 text-muted-foreground mb-2" /><p className="text-xs text-muted-foreground">After photos</p><p className="text-xs font-medium text-primary mt-1">Tap to add</p></CardContent></Card>
+                <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("before")}><CardContent className="p-6 flex flex-col items-center justify-center text-center"><Camera className="w-8 h-8 text-muted-foreground mb-2" /><p className="text-xs text-muted-foreground">Initial Inspection</p><p className="text-xs font-medium text-primary mt-1">Tap to add</p></CardContent></Card>
+                <Card className="border-dashed cursor-pointer" onClick={() => setActivePhotoType("after")}><CardContent className="p-6 flex flex-col items-center justify-center text-center"><Camera className="w-8 h-8 text-muted-foreground mb-2" /><p className="text-xs text-muted-foreground">Completion Photos</p><p className="text-xs font-medium text-primary mt-1">Tap to add</p></CardContent></Card>
               </div>
               {activePhotoType && (
                 <div className="rounded-lg border border-border p-3 bg-accent/20 space-y-2">
