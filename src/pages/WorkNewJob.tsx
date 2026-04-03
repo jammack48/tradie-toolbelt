@@ -1,6 +1,6 @@
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, MapPin, User, FileText, Check, Plus, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, User, FileText, Check, Plus, Search, Mic, MicOff } from "lucide-react";
 import { format, addDays, startOfWeek, isToday } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
