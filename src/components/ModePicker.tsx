@@ -11,7 +11,7 @@ import { useUserSettings } from "@/contexts/UserSettingsContext";
 type SubStep = null | "manager-choice";
 
 export function ModePicker() {
-  const { setMode, setSoleTraderPrefs } = useAppMode();
+  const { setMode } = useAppMode();
   const { setTutorialOn } = useTutorial();
   const { settings } = useUserSettings();
   const { isDemo, setIsDemo } = useAuth();
