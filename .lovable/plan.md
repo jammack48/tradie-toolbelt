@@ -1,38 +1,73 @@
 
 
-## Two Fixes
+## Improvements to Work Mode Flows
 
-### Issue 1: Materials not loading in "On the Tools" mode
+This plan covers 7 changes across the job creation, completion, and materials flows.
 
-Both Office (`JobCard`) and Work (`WorkJobCard`) render the same `<MaterialsTab jobId={job.id} />` component, which uses `useAuth()` to gate on `user`. The `MaterialSearch` inside calls `searchSupplierItems` from `supplierService.ts`, which imports the client from `@/lib/supabase`. Since we just fixed `supabase.ts` to point to your external project, this should now work in both modes. 
+### 1. Plus button offers "Charge Up" or "Quote" choice
+**File**: `src/pages/WorkHome.tsx`
 
-**However**, I need to verify there isn't a secondary issue — the `MaterialsTab` only loads when `user && jobId` are truthy. If auth state is somehow lost or delayed in work mode, materials won't load. I'll add a defensive check and ensure the search works even without a specific `jobId` match (the search dropdown queries `supplier_items`, not `job_materials`).
+Currently the FAB (line 155-160) navigates directly to `/new-job`. Change it to show a small action sheet/popover with two options:
+- **Charge Up** — navigates to `/new-job` (existing flow for immediate work)
+- **New Quote** — navigates to `/quote/new` (quote funnel)
 
-**Action**: Verify `supplierService.ts` imports from `@/lib/supabase` (not the Lovable Cloud client). If it does, materials should work now. If there's still an issue, it's likely the auth race condition — I'll gate MaterialSearch on auth readiness.
+The "New Quote" option will be conditionally hidden based on a new `canQuote` flag (see point 2).
 
-### Issue 2: No option to choose demo mode after logout
+### 2. Manager controls whether employees can quote
+**File**: `src/contexts/AppModeContext.tsx`
 
-**Root cause**: In `App.tsx` line 82-84, when `!user` the app renders `<LoginPage />` directly. The `SplashPage` component (with "Sign In" / "Try Demo" buttons) exists but is never shown. After logout, users go straight to the login form with no way to enter demo mode.
+Add an `employeeCanQuote: boolean` field to `SoleTraderPrefs` (or a new settings object). Default `false` for Employee mode. When the user is in "work" (employee) mode, the "New Quote" option in the plus menu is hidden. Managers/owners always see it. This prevents employees from accessing sensitive pricing information.
 
-**Fix**: Replace the `<LoginPage />` fallback with a `SplashPage`-based flow:
-- When `!user && !isDemo`: show `SplashPage` with "Sign In" and "Try Demo" buttons
-- "Sign In" navigates to `LoginPage`
-- "Try Demo" sets `isDemo(true)` and proceeds to `ModePicker`
-- When `!user && isDemo`: show `ModePicker` (demo flow)
+### 3. Customer name auto-populates address in WorkNewJob
+**File**: `src/pages/WorkNewJob.tsx`
 
-**Files to change**:
+The `CustomerPicker` component already does this (line 67-72: `selectCustomer` sets both `setCustomer(c.name)` and `setAddress(c.address)`). The address field is already editable. This is working correctly based on the screenshot. No change needed here.
 
-1. **`src/App.tsx`** (lines 80-88) — Replace the `!user` block:
-   - If `!isDemo` and no `user`: show `SplashPage` with handlers
-   - "Sign In" handler: set local state to show `LoginPage`
-   - "Try Demo" handler: call `setIsDemo(true)` 
-   - If `isDemo` and no `user`: fall through to `ModePicker`
-   - Add a "back" state so LoginPage's `onBack` returns to SplashPage
+### 4. Add microphone/dictation to description field in WorkNewJob
+**File**: `src/pages/WorkNewJob.tsx`
 
-2. **`src/components/AppHeader.tsx`** (logout handler, line 30-33) — Already calls `sessionStorage.clear()` and `setIsDemo(false)`, which is correct. No change needed.
+Add a dictation toggle button (Mic icon) next to the Description label, using the same `SpeechRecognition` pattern already in `JobCompletionFlow.tsx` and `SoleTraderCloseOutFlow.tsx`. When active, append transcribed text to the `description` state.
 
-### Result
-- After logout → SplashPage with "Sign In" / "Try Demo"
-- Materials search works in both Office and Tools modes via the now-corrected external Supabase client
-- No Lovable Cloud involvement anywhere
+### 5. "Job Finished" / "Coming Back" auto-advances to next step
+**Files**: `src/components/job/JobCompletionFlow.tsx`, `src/components/job/SoleTraderCloseOutFlow.tsx`
+
+Currently clicking "Job Finished" or "Coming Back" only toggles `jobFinished` state — the user must also click "Next". Change:
+- **Job Finished** button: set `jobFinished(true)` then auto-advance `setStep(step + 1)` after a brief 300ms delay
+- **Coming Back** button: set `jobFinished(false)` — keep current behavior (shows return notes inline, no auto-advance since user needs to fill in notes and choose schedule/book later)
+
+Both flows affected: `JobCompletionFlow` (employee) and `SoleTraderCloseOutFlow` (sole trader).
+
+### 6. Make checklists optional — skip if none relevant
+**Files**: `src/components/job/JobCompletionFlow.tsx`, `src/components/job/SoleTraderCloseOutFlow.tsx`
+
+The checklist step already says "optional" but is always shown. Add a "Skip" or auto-skip behavior:
+- If no checklist templates match the category, skip the step entirely (filter it out of `activeSteps`)
+- Add a visible "No checklists needed — skip" button alongside the template list so users can advance without selecting one
+
+### 7. Materials in completion flow not searching Supabase
+**Files**: `src/components/job/SoleTraderCloseOutFlow.tsx`, `src/components/job/JobCompletionFlow.tsx`
+
+The "Add extra item" in both completion flows (lines 520-526 in SoleTrader, 606-627 in Employee) is a plain text input — it does NOT use `MaterialSearch` which queries Supabase `supplier_items`. 
+
+Fix: Replace the plain-text "Add extra item" input with the existing `<MaterialSearch>` component (which queries Supabase via `searchSupplierItems`). Keep a fallback manual text input for items not in the price book. This ensures the completion flow materials step searches the external Supabase just like the Materials tab on the job card.
+
+### 8. Rename "Before photos" to "Initial Inspection" and move to start
+**Files**: `src/components/job/JobCompletionFlow.tsx`, `src/components/job/SoleTraderCloseOutFlow.tsx`
+
+- Rename "Before photos" label to "Initial Inspection" in the photos step
+- Move the photos step earlier in the step order — place it as step 1 (after status) in both flows, before checklist/materials
+- Rename "After photos" to "Completion Photos"
+
+### Technical details
+
+**Step order changes:**
+- Employee flow: Status → Photos (renamed) → Checklist → Job Sheet → Parts → Time → PO Review → Compliance
+- Sole Trader flow: Status → Photos (renamed) → Checklist → Materials → Time → Paperwork → Certificates → Invoice → Done
+
+**Files modified:**
+1. `src/pages/WorkHome.tsx` — FAB becomes action sheet with Charge Up / Quote
+2. `src/contexts/AppModeContext.tsx` — add `employeeCanQuote` setting
+3. `src/pages/WorkNewJob.tsx` — add dictation to description field
+4. `src/components/job/JobCompletionFlow.tsx` — auto-advance on status select, skip checklists, MaterialSearch integration, rename/reorder photos
+5. `src/components/job/SoleTraderCloseOutFlow.tsx` — same changes as above
 
