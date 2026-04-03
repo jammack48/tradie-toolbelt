@@ -604,12 +604,25 @@ export function JobCompletionFlow({ open, onOpenChange, job, resumeAfterBooking,
                 ))}
               </div>
 
-              {/* Add extra item */}
+              {/* Add extra item via Supabase search */}
               <div className="space-y-1.5 pt-1 border-t border-border">
-                <Label className="text-xs">Add extra item</Label>
-                <div className="flex gap-2">
+                <Label className="text-xs">Search pricebook or add manually</Label>
+                <MaterialSearch onSelect={(item) => {
+                  setParts((prev) => [...prev, {
+                    id: `extra-${Date.now()}`,
+                    name: item.name,
+                    quantity: 1,
+                    unit: "pcs",
+                    unitPrice: item.sell_price,
+                    supplier: item.supplier_name || "",
+                    used: true,
+                    source: "supplier" as const,
+                    supplierName: item.supplier_name,
+                  }]);
+                }} />
+                <div className="flex gap-2 mt-1.5">
                   <Input
-                    placeholder="Item name..."
+                    placeholder="Or type item name..."
                     value={extraPartName}
                     onChange={(e) => setExtraPartName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddExtra(); } }}
