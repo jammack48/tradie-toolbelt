@@ -1,73 +1,64 @@
 
 
-## Improvements to Work Mode Flows
+## Plan: Streamline Work Mode Flows
 
-This plan covers 7 changes across the job creation, completion, and materials flows.
+### Problem Summary
+1. **New Quote doesn't work** — navigates to `/quote/new` but that route renders `QuotePage` which expects a `:id` param, not "new"
+2. **Van Stock / Reconcile Docs are set during mode selection** — they should be in Settings (manager mode) so they persist and apply automatically in Work mode, removing the setup screen from ModePicker
+3. **Keyboard covers materials search** — the dialog content has `max-h-[85vh]` and materials section sits mid-page; on mobile the search dropdown is hidden behind the keyboard
+4. **Checklists take up a whole step** — should be a collapsible section on another screen (e.g. photos or materials) rather than a dedicated step
 
-### 1. Plus button offers "Charge Up" or "Quote" choice
+### Changes
+
+#### 1. Fix "New Quote" navigation
 **File**: `src/pages/WorkHome.tsx`
+- Change `navigate("/quote/new")` to `navigate("/quote/new", { state: {} })` — this already works, the QuotePage component handles the "new" id by showing the QuoteFunnel. Verify the route `/quote/:id` with id="new" triggers the funnel. Looking at `QuotePage.tsx`, it checks `id === "new"` to show the funnel, so the route itself works. The issue may be something else — need to verify if there's a guard blocking non-manage modes from the quote page. Will add a console check.
 
-Currently the FAB (line 155-160) navigates directly to `/new-job`. Change it to show a small action sheet/popover with two options:
-- **Charge Up** — navigates to `/new-job` (existing flow for immediate work)
-- **New Quote** — navigates to `/quote/new` (quote funnel)
+Actually, reviewing the route in `App.tsx` line 140: `<Route path="/quote/:id" element={<QuotePage />} />` — this is inside the manage-mode routes. Work mode has its own route set. The `/quote/new` route is likely not registered under work-mode routes.
 
-The "New Quote" option will be conditionally hidden based on a new `canQuote` flag (see point 2).
+**Fix**: Add `<Route path="/quote/:id" element={<QuotePage />} />` to the work-mode route group in `App.tsx`.
 
-### 2. Manager controls whether employees can quote
-**File**: `src/contexts/AppModeContext.tsx`
+#### 2. Move Van Stock / Reconcile Docs to Settings
+**Files**: `src/pages/SettingsPage.tsx`, `src/contexts/UserSettingsContext.tsx`, `src/components/ModePicker.tsx`, `src/contexts/AppModeContext.tsx`
 
-Add an `employeeCanQuote: boolean` field to `SoleTraderPrefs` (or a new settings object). Default `false` for Employee mode. When the user is in "work" (employee) mode, the "New Quote" option in the plus menu is hidden. Managers/owners always see it. This prevents employees from accessing sensitive pricing information.
+- Add `vanStock: boolean` and `reconcileDocs: boolean` to `UserSettings` (persisted in Supabase user_settings table)
+- Add toggles in Settings > Team tab (or a new "Work Mode" section in Settings)
+- In `SoleTraderCloseOutFlow` and `JobCompletionFlow`, read these from `useUserSettings()` instead of `soleTraderPrefs`
+- Remove the "sole-trader-setup" sub-step from `ModePicker` — selecting "On the Tools" goes straight to the app
+- Keep `employeeCanQuote` in settings too
 
-### 3. Customer name auto-populates address in WorkNewJob
-**File**: `src/pages/WorkNewJob.tsx`
-
-The `CustomerPicker` component already does this (line 67-72: `selectCustomer` sets both `setCustomer(c.name)` and `setAddress(c.address)`). The address field is already editable. This is working correctly based on the screenshot. No change needed here.
-
-### 4. Add microphone/dictation to description field in WorkNewJob
-**File**: `src/pages/WorkNewJob.tsx`
-
-Add a dictation toggle button (Mic icon) next to the Description label, using the same `SpeechRecognition` pattern already in `JobCompletionFlow.tsx` and `SoleTraderCloseOutFlow.tsx`. When active, append transcribed text to the `description` state.
-
-### 5. "Job Finished" / "Coming Back" auto-advances to next step
-**Files**: `src/components/job/JobCompletionFlow.tsx`, `src/components/job/SoleTraderCloseOutFlow.tsx`
-
-Currently clicking "Job Finished" or "Coming Back" only toggles `jobFinished` state — the user must also click "Next". Change:
-- **Job Finished** button: set `jobFinished(true)` then auto-advance `setStep(step + 1)` after a brief 300ms delay
-- **Coming Back** button: set `jobFinished(false)` — keep current behavior (shows return notes inline, no auto-advance since user needs to fill in notes and choose schedule/book later)
-
-Both flows affected: `JobCompletionFlow` (employee) and `SoleTraderCloseOutFlow` (sole trader).
-
-### 6. Make checklists optional — skip if none relevant
-**Files**: `src/components/job/JobCompletionFlow.tsx`, `src/components/job/SoleTraderCloseOutFlow.tsx`
-
-The checklist step already says "optional" but is always shown. Add a "Skip" or auto-skip behavior:
-- If no checklist templates match the category, skip the step entirely (filter it out of `activeSteps`)
-- Add a visible "No checklists needed — skip" button alongside the template list so users can advance without selecting one
-
-### 7. Materials in completion flow not searching Supabase
+#### 3. Fix materials keyboard overlap
 **Files**: `src/components/job/SoleTraderCloseOutFlow.tsx`, `src/components/job/JobCompletionFlow.tsx`
 
-The "Add extra item" in both completion flows (lines 520-526 in SoleTrader, 606-627 in Employee) is a plain text input — it does NOT use `MaterialSearch` which queries Supabase `supplier_items`. 
+- When the materials step is active, render the search input and results at the **top** of the step content (it already is, but the dialog itself scrolls)
+- Change the `DialogContent` wrapper for the materials step to use `flex flex-col` with the search pinned at the top and items list scrollable below
+- Add `position: sticky; top: 0; z-index: 10` to the search section so it stays visible when keyboard opens
+- Reduce `max-h-56` on the items list to give more room for search dropdown results
 
-Fix: Replace the plain-text "Add extra item" input with the existing `<MaterialSearch>` component (which queries Supabase via `searchSupplierItems`). Keep a fallback manual text input for items not in the price book. This ensures the completion flow materials step searches the external Supabase just like the Materials tab on the job card.
+#### 4. Merge checklists into photos step
+**Files**: `src/components/job/SoleTraderCloseOutFlow.tsx`, `src/components/job/JobCompletionFlow.tsx`
 
-### 8. Rename "Before photos" to "Initial Inspection" and move to start
-**Files**: `src/components/job/JobCompletionFlow.tsx`, `src/components/job/SoleTraderCloseOutFlow.tsx`
+- Remove "checklist" as a separate step from `ALL_STEPS` / `STEPS`
+- Add a collapsible checklist section at the bottom of the "photos" step
+- Use a `Collapsible` with trigger text "Checklist (optional)" that expands to show the `ChecklistStepInline` component
+- This removes one full screen from the flow
 
-- Rename "Before photos" label to "Initial Inspection" in the photos step
-- Move the photos step earlier in the step order — place it as step 1 (after status) in both flows, before checklist/materials
-- Rename "After photos" to "Completion Photos"
+#### 5. Read settings in completion flows
+**Files**: `src/components/job/SoleTraderCloseOutFlow.tsx`, `src/components/job/JobCompletionFlow.tsx`
 
-### Technical details
+- Import `useUserSettings` and read `vanStock`, `reconcileDocs` from there instead of from `soleTraderPrefs`
+- This means the manager sets it once in Settings, and all work-mode users inherit it
 
-**Step order changes:**
-- Employee flow: Status → Photos (renamed) → Checklist → Job Sheet → Parts → Time → PO Review → Compliance
-- Sole Trader flow: Status → Photos (renamed) → Checklist → Materials → Time → Paperwork → Certificates → Invoice → Done
+### Step order after changes
 
-**Files modified:**
-1. `src/pages/WorkHome.tsx` — FAB becomes action sheet with Charge Up / Quote
-2. `src/contexts/AppModeContext.tsx` — add `employeeCanQuote` setting
-3. `src/pages/WorkNewJob.tsx` — add dictation to description field
-4. `src/components/job/JobCompletionFlow.tsx` — auto-advance on status select, skip checklists, MaterialSearch integration, rename/reorder photos
-5. `src/components/job/SoleTraderCloseOutFlow.tsx` — same changes as above
+**Sole Trader flow**: Status → Photos + Checklist → Materials → Labour → Paperwork (if reconcileDocs) → Certificates → Invoice
+**Employee flow**: Status → Photos + Checklist → Job Sheet → Parts → Time → PO Review → Compliance
+
+### Files modified
+1. `src/App.tsx` — add quote route to work-mode group
+2. `src/pages/SettingsPage.tsx` — add Van Stock / Reconcile Docs / Employee Can Quote toggles to Team tab
+3. `src/contexts/UserSettingsContext.tsx` — add new settings fields
+4. `src/components/ModePicker.tsx` — remove sole-trader-setup sub-step
+5. `src/components/job/SoleTraderCloseOutFlow.tsx` — merge checklist into photos, fix materials layout, read settings from UserSettings
+6. `src/components/job/JobCompletionFlow.tsx` — merge checklist into photos, fix materials layout
 
