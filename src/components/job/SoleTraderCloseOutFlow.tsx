@@ -25,6 +25,8 @@ import { toast } from "@/hooks/use-toast";
 import { useDemoData } from "@/contexts/DemoDataContext";
 import { stageForPipelineEvent } from "@/services/pipelineTransitions";
 import { useAppMode } from "@/contexts/AppModeContext";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
+import { SequenceSelector } from "@/components/quote/SequenceSelector";
 import { SequenceSelector } from "@/components/quote/SequenceSelector";
 
 
