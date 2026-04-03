@@ -155,8 +155,9 @@ function buildInvoiceLines(job: JobDetail, parts: PartUsed[], actualHours: numbe
 export function SoleTraderCloseOutFlow({ open, onOpenChange, job, resumeAfterBooking, introMode = false, onChecklistComplete }: Props) {
   const navigate = useNavigate();
   const { updateJobStage } = useDemoData();
-  const { soleTraderPrefs } = useAppMode();
+  const { settings } = useUserSettings();
   const [step, setStep] = useState(resumeAfterBooking ? 1 : 0);
+  const [checklistOpen, setChecklistOpen] = useState(false);
 
   const initialJobSheet = useMemo(() => {
     const existingDescription = job.description?.trim();
