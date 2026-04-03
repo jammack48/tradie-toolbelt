@@ -84,6 +84,9 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
             isDark: data.is_dark == null ? true : Boolean(data.is_dark),
             toolbarPosition: (data.toolbar_position as ToolbarPosition) || "left",
             businessProfile: data.business_profile ?? null,
+            vanStock: Boolean(data.van_stock),
+            reconcileDocs: Boolean(data.reconcile_docs),
+            employeeCanQuote: Boolean(data.employee_can_quote),
           });
         }
         setLoading(false);
