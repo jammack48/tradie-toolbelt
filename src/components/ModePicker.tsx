@@ -20,13 +20,6 @@ export function ModePicker() {
   const canShowEmployeeMode = settings.showEmployeeMode || showAllModesForDev;
   const canShowTimesheetMode = settings.showTimesheetMode || showAllModesForDev;
   const [subStep, setSubStep] = useState<SubStep>(null);
-  const [vanStock, setVanStock] = useState(false);
-  const [reconcileDocs, setReconcileDocs] = useState(false);
-
-  const handleSoleTraderConfirm = () => {
-    setSoleTraderPrefs({ vanStock, reconcileDocs, employeeCanQuote: false });
-    setMode("sole-trader");
-  };
 
   if (subStep === "sole-trader-setup") {
     return (
