@@ -379,6 +379,7 @@ export function QuoteFunnel({ onComplete, onStepChange, label = "quote", initial
       {step === 2 && (
         <StepAddress
           address={address}
+          customerAddress={customer?.address || ""}
           onAddressChange={setAddress}
           onNext={() => setStep(3)}
           onBack={() => setStep(1)}
