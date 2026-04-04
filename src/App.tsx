@@ -66,10 +66,10 @@ function AppLayout() {
   }, [settingsLoading, settings.theme, settings.isDark, setTheme, setIsDark]);
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !isDemo) {
       clearMode();
     }
-  }, [user, clearMode]);
+  }, [user, isDemo, clearMode]);
 
   // Show loading spinner while auth initializes
   if (loading) {
