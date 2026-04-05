@@ -17,6 +17,7 @@ import type { JobDetail } from "@/data/dummyJobDetails";
 import { catalogueItems, bundleTemplates } from "@/data/dummyJobDetails";
 import { coverLetterTemplates } from "@/data/coverLetterTemplates";
 import { QuotePreview } from "@/components/quote/QuotePreview";
+import { VoiceInputButton } from "@/components/ui/voice-input-button";
 
 interface LineItem {
   id: string;
@@ -54,15 +55,24 @@ function genId() { return `qi-${nextId++}`; }
 function blockId() { return `blk-${nextId++}`; }
 
 /* ── Section header row ─────────────────────────────────── */
-function SectionHeader({ label, total, isOpen, onToggle }: { label: string; total: number; isOpen: boolean; onToggle: () => void; }) {
+function SectionHeader({ label, total, isOpen, onToggle, onAdd }: { label: string; total: number; isOpen: boolean; onToggle: () => void; onAdd: () => void; }) {
+  const toneByLabel: Record<string, string> = {
+    Labour: "bg-primary/15 border-primary/30",
+    Materials: "bg-[hsl(var(--status-orange))]/15 border-[hsl(var(--status-orange))]/30",
+    Extras: "bg-[hsl(var(--status-green))]/15 border-[hsl(var(--status-green))]/30",
+  };
   return (
-    <button onClick={onToggle} className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-muted/60 hover:bg-muted transition-colors cursor-pointer">
-      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+    <div className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border transition-colors ${toneByLabel[label] || "bg-muted/60 border-border"}`} style={{ filter: "contrast(calc(1 + var(--section-contrast, 15) / 100))" }}>
+      <button onClick={onAdd} className="text-xs font-bold uppercase tracking-wider text-foreground hover:text-primary transition-colors cursor-pointer">
+        + {label}
+      </button>
       <div className="flex items-center gap-2">
         <span className="text-sm font-bold">${total.toFixed(2)}</span>
-        {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        <button onClick={onToggle} className="p-1 rounded-md hover:bg-background/40">
+          {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        </button>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -111,7 +121,7 @@ function BlockSection({ label, items, section, isOpen, onToggle, onUpdate, onDel
   const total = items.reduce((s, i) => s + i.qty * i.sellPrice, 0);
   return (
     <div>
-      <SectionHeader label={label} total={total} isOpen={isOpen} onToggle={onToggle} />
+      <SectionHeader label={label} total={total} isOpen={isOpen} onToggle={onToggle} onAdd={onOpenPalette} />
       <Collapsible open={isOpen}>
         <CollapsibleContent>
           <div className="space-y-1 mt-1">
@@ -119,7 +129,6 @@ function BlockSection({ label, items, section, isOpen, onToggle, onUpdate, onDel
               <ItemRow key={item.id} item={item} isLast={idx === items.length - 1} onUpdate={onUpdate} onDelete={onDelete} onEnterLast={onAddBlank} lastRef={lastRef} globalMarkupValue={globalMarkupValue} useGlobalMarkup={useGlobalMarkup} onResetToGlobal={onResetToGlobal} />
             ))}
           </div>
-          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground mt-1" onClick={onOpenPalette}><Plus className="w-4 h-4" /> Add</Button>
         </CollapsibleContent>
       </Collapsible>
     </div>
@@ -422,6 +431,9 @@ export function QuoteTab({ job, initialBundle, initialDescription, beforeActions
                     placeholder="Describe scope of this job…"
                     className="min-h-[80px] bg-muted/20 rounded-lg px-3 py-2 border border-border focus-visible:ring-1 focus-visible:ring-ring text-sm resize-none overflow-hidden"
                   />
+                  <div className="flex justify-end mt-1">
+                    <VoiceInputButton onTranscript={(text) => updateBlockField(block.id, "description", `${block.description} ${text}`.trim())} />
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0 mt-1">
                   {block.qty > 1 && (

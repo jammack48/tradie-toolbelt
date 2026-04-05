@@ -11,7 +11,7 @@ import { ToolbarPositionProvider, useToolbarPosition } from "@/contexts/ToolbarP
 import { TutorialProvider } from "@/contexts/TutorialContext";
 import { AppModeProvider, useAppMode } from "@/contexts/AppModeContext";
 import { DemoDataProvider } from "@/contexts/DemoDataContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { JobPrefixProvider } from "@/contexts/JobPrefixContext";
 import { BackendProvider } from "@/contexts/BackendContext";
 import { BackendLogPanel } from "@/components/BackendLogPanel";
@@ -51,19 +51,9 @@ import { cn } from "@/lib/utils";
 const queryClient = new QueryClient();
 
 function AppLayout() {
-  const { mode, trade, isWorkMode, isTimesheetOnlyMode, isIntroMode, clearMode, clearTrade } = useAppMode();
+  const { mode, trade, isWorkMode, isTimesheetOnlyMode, isIntroMode } = useAppMode();
   const { position } = useToolbarPosition();
   const [splashDismissed, setSplashDismissed] = useState(false);
-
-  // Each fresh browser session starts at splash → trade picker → mode picker
-  useEffect(() => {
-    const started = sessionStorage.getItem("appSessionStarted");
-    if (!started) {
-      sessionStorage.setItem("appSessionStarted", "true");
-      clearMode();
-      clearTrade();
-    }
-  }, [clearMode, clearTrade]);
 
   if (!splashDismissed) {
     return <SplashPage onStart={() => setSplashDismissed(true)} />;
@@ -111,6 +101,7 @@ function AppLayout() {
                 <Route path="/hub" element={<WorkHome />} />
                 <Route path="/job/:id" element={<WorkJobCard />} />
                 <Route path="/new-job" element={<WorkNewJob />} />
+                <Route path="/quote/new" element={<QuotePage />} />
                 <Route path="/work-notes" element={<WorkNotes />} />
                 <Route path="/work-chat" element={<WorkChat />} />
                 <Route path="/work-hub" element={<WorkHub />} />

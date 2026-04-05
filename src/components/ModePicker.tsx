@@ -148,7 +148,7 @@ export function ModePicker() {
           </div>
 
           <button
-            onClick={() => setSubStep("manager-choice")}
+            onClick={() => { setTutorialOn(false); setMode("manage"); }}
             className="group rounded-xl border-2 border-border bg-card p-5 text-left transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <div className="flex items-center gap-4">
