@@ -68,9 +68,8 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
     (async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from("user_settings")
+        .from("prod_user_settings")
         .select("*")
-        .eq("user_id", user.id)
         .maybeSingle();
 
       if (!cancelled) {
@@ -104,7 +103,7 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
     setSettings(next);
     if (!user) return;
 
-    const { error } = await supabase.from("user_settings").upsert({
+    const { error } = await supabase.from("prod_user_settings").upsert({
       user_id: user.id,
       tutorials_enabled: next.tutorialsEnabled,
       show_timesheet_mode: next.showTimesheetMode,
