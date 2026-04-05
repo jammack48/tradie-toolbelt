@@ -3,6 +3,7 @@ import { Search, ArrowLeft, ArrowRight, Wrench, Zap, Settings, Hammer, Bath, Pen
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { VoiceInputButton } from "@/components/ui/voice-input-button";
 import { useDemoData } from "@/contexts/DemoDataContext";
 import { bundleTemplates, type BundleTemplate } from "@/data/dummyJobDetails";
 import { Command, CommandInput, CommandList, CommandItem, CommandEmpty, CommandGroup } from "@/components/ui/command";
@@ -121,16 +122,24 @@ function StepCustomer({ onSelect, onSkip, label = "quote", customers }: { onSele
 
 /* ── Step 2: Confirm Address ───────────────────────────── */
 function StepAddress({
+  customerId,
+  suggestedAddresses,
   address,
   onAddressChange,
+  onSaveAddress,
   onNext,
   onBack,
 }: {
+  customerId: number | null;
+  suggestedAddresses: string[];
   address: string;
   onAddressChange: (v: string) => void;
+  onSaveAddress: () => void;
   onNext: () => void;
   onBack: () => void;
 }) {
+  const [showCustom, setShowCustom] = useState(false);
+
   return (
     <div className="space-y-6">
       <button onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
@@ -138,6 +147,26 @@ function StepAddress({
       </button>
 
       <h2 className="text-lg font-bold text-card-foreground">Site Address</h2>
+
+      {customerId && suggestedAddresses.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Saved addresses</p>
+          <div className="space-y-2">
+            {suggestedAddresses.map((option) => (
+              <button
+                key={option}
+                onClick={() => { onAddressChange(option); setShowCustom(false); }}
+                className="w-full text-left rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-card-foreground hover:bg-accent transition-colors"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setShowCustom((v) => !v)} className="text-xs text-primary hover:underline">
+            {showCustom ? "Use saved address" : "Use a different address"}
+          </button>
+        </div>
+      )}
 
       <Input
         value={address}
@@ -147,9 +176,14 @@ function StepAddress({
         autoFocus
       />
 
-      <Button className="w-full h-12 gap-2" onClick={onNext}>
-        Next <ArrowRight className="w-4 h-4" />
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="outline" className="h-12 px-4" onClick={onSaveAddress} disabled={!address.trim()}>
+          Save site
+        </Button>
+        <Button className="flex-1 h-12 gap-2" onClick={onNext}>
+          Next <ArrowRight className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -287,6 +321,9 @@ function StepBundle({
                 className="min-h-[80px]"
                 autoFocus
               />
+              <div className="flex items-center justify-end">
+                <VoiceInputButton onTranscript={(text) => setCustomDesc((prev) => (prev ? `${prev} ${text}` : text))} />
+              </div>
               <Button
                 className="w-full h-12"
                 disabled={!customDesc.trim()}
@@ -315,11 +352,21 @@ function StepBundle({
 /* ── Main Funnel (pure content, no page shell) ─────────── */
 export function QuoteFunnel({ onComplete, onStepChange, label = "quote", initialCustomer }: QuoteFunnelProps) {
   const { customers } = useDemoData();
+  const [customerSites, setCustomerSites] = useState<Record<number, string[]>>(() => {
+    const raw = localStorage.getItem("tradie-customer-sites");
+    if (!raw) return {};
+    try { return JSON.parse(raw) as Record<number, string[]>; } catch { return {}; }
+  });
   const startStep = initialCustomer ? 2 : 1;
   const [step, _setStep] = useState(startStep);
   const setStep = (s: number) => { _setStep(s); onStepChange?.(s); };
   const [customer, setCustomer] = useState<DemoCustomer | null>(initialCustomer || null);
   const [address, setAddress] = useState(initialCustomer?.address || "");
+  const suggestedAddresses = useMemo(() => {
+    if (!customer) return [];
+    const customSites = customerSites[customer.id] || [];
+    return Array.from(new Set([customer.address, ...customSites].filter(Boolean)));
+  }, [customer, customerSites]);
 
   const handleSelectCustomer = (c: DemoCustomer) => {
     setCustomer(c);
@@ -331,6 +378,18 @@ export function QuoteFunnel({ onComplete, onStepChange, label = "quote", initial
     setCustomer(null);
     setAddress("");
     setStep(2);
+  };
+
+  const saveCurrentAddress = () => {
+    if (!customer || !address.trim()) return;
+    setCustomerSites((prev) => {
+      const next = {
+        ...prev,
+        [customer.id]: Array.from(new Set([...(prev[customer.id] || []), address.trim()])),
+      };
+      localStorage.setItem("tradie-customer-sites", JSON.stringify(next));
+      return next;
+    });
   };
 
   const handleSelectBundle = (b: BundleTemplate) => {
@@ -348,8 +407,11 @@ export function QuoteFunnel({ onComplete, onStepChange, label = "quote", initial
       )}
       {step === 2 && (
         <StepAddress
+          customerId={customer?.id ?? null}
+          suggestedAddresses={suggestedAddresses}
           address={address}
           onAddressChange={setAddress}
+          onSaveAddress={saveCurrentAddress}
           onNext={() => setStep(3)}
           onBack={() => setStep(1)}
         />

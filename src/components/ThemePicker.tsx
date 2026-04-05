@@ -2,6 +2,7 @@ import { useTheme, type Theme } from "@/contexts/ThemeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppMode } from "@/contexts/AppModeContext";
@@ -36,7 +37,7 @@ function RiserIcon({ className }: { className?: string }) {
 }
 
 export function ThemePicker() {
-  const { theme, setTheme, isDark, setIsDark } = useTheme();
+  const { theme, setTheme, isDark, setIsDark, contrast, setContrast } = useTheme();
   const { isIntroMode } = useAppMode();
 
   return (
@@ -87,6 +88,19 @@ export function ThemePicker() {
             {isDark ? "Dark" : "Light"}
           </div>
           <Switch checked={isDark} onCheckedChange={setIsDark} />
+        </div>
+        <div className="mt-3 pt-3 border-t border-border space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground font-medium">Section Contrast</span>
+            <span className="font-semibold text-foreground">{contrast}%</span>
+          </div>
+          <Slider
+            value={[contrast]}
+            min={0}
+            max={40}
+            step={1}
+            onValueChange={(values) => setContrast(values[0] ?? contrast)}
+          />
         </div>
       </PopoverContent>
     </Popover>

@@ -55,6 +55,7 @@
     --sidebar-accent-foreground: 35 15% 80%;
     --sidebar-border: 30 10% 22%;
     --sidebar-ring: 145 25% 42%;
+    --section-contrast: 15;
   }
 
   .light {
@@ -104,6 +105,7 @@
     --sidebar-accent-foreground: 30 12% 30%;
     --sidebar-border: 35 12% 82%;
     --sidebar-ring: 145 20% 36%;
+    --section-contrast: 15;
   }
 }
 

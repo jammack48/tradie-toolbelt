@@ -7,7 +7,7 @@ import { DayStrip } from "@/components/schedule/DayStrip";
 import { DayViewToggle } from "@/components/schedule/DayViewToggle";
 import { TimeGrid3Day } from "@/components/schedule/TimeGrid3Day";
 import { generateWeekJobs } from "@/components/schedule/scheduleData";
-import { Package, ChevronUp, ChevronDown, Plus } from "lucide-react";
+import { Package, ChevronUp, ChevronDown, Plus, Wrench, FileText, BriefcaseBusiness } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +30,7 @@ export default function WorkHome() {
     const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     return diff >= 0 && diff <= 6 ? diff : 0;
   });
+  const [fabOpen, setFabOpen] = useState(false);
 
   const selectedDate = addDays(weekStart, selectedDay);
 
@@ -153,13 +154,44 @@ export default function WorkHome() {
         />
       </div>
 
-      {/* Floating New Job button */}
-      <button
-        onClick={() => navigate("/new-job")}
-        className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
+      {/* Floating action button */}
+      <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-2">
+        {fabOpen && (
+          <div className="w-52 rounded-xl border border-border bg-card/95 backdrop-blur p-2 shadow-xl space-y-1 animate-fade-in">
+            <button
+              onClick={() => { setFabOpen(false); navigate("/new-job"); }}
+              className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold text-card-foreground hover:bg-accent transition-colors"
+            >
+              <BriefcaseBusiness className="w-4 h-4 text-primary" />
+              New Job
+            </button>
+            <button
+              onClick={() => { setFabOpen(false); navigate("/quote/new"); }}
+              className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold text-card-foreground hover:bg-accent transition-colors"
+            >
+              <FileText className="w-4 h-4 text-primary" />
+              New Quote
+            </button>
+            <button
+              onClick={() => { setFabOpen(false); navigate("/quote/new"); }}
+              className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold text-card-foreground hover:bg-accent transition-colors"
+            >
+              <Wrench className="w-4 h-4 text-primary" />
+              Charge Up
+            </button>
+          </div>
+        )}
+        <button
+          onClick={() => setFabOpen((open) => !open)}
+          className={cn(
+            "w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors",
+            !fabOpen && "animate-glow-ping-subtle"
+          )}
+          aria-label="Open quick actions"
+        >
+          <Plus className={cn("w-7 h-7 transition-transform", fabOpen && "rotate-45")} />
+        </button>
+      </div>
     </div>
   );
 }
