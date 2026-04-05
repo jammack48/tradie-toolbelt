@@ -17,8 +17,8 @@ export interface JobMaterial {
 /** Fetch all materials for a job */
 export async function fetchJobMaterials(jobId: string): Promise<JobMaterial[]> {
   const { data, error } = await supabase
-    .from("job_materials")
-    .select("*, supplier_items!inner(name, sku, suppliers!inner(name))")
+    .from("prod_job_materials")
+    .select("*, prod_supplier_items!inner(name, sku, prod_suppliers!inner(name))")
     .eq("job_id", jobId)
     .order("created_at", { ascending: true });
   if (error) throw error;
@@ -30,9 +30,9 @@ export async function fetchJobMaterials(jobId: string): Promise<JobMaterial[]> {
     unit_price: Number(row.unit_price),
     cost_price: Number(row.cost_price),
     created_at: row.created_at,
-    item_name: row.supplier_items?.name ?? "",
-    item_sku: row.supplier_items?.sku ?? "",
-    supplier_name: row.supplier_items?.suppliers?.name ?? "",
+    item_name: row.prod_supplier_items?.name ?? "",
+    item_sku: row.prod_supplier_items?.sku ?? "",
+    supplier_name: row.prod_supplier_items?.prod_suppliers?.name ?? "",
   }));
 }
 
@@ -44,7 +44,7 @@ export async function addJobMaterial(
   costPrice: number,
   quantity = 1
 ): Promise<void> {
-  const { error } = await supabase.from("job_materials").insert({
+  const { error } = await supabase.from("prod_job_materials").insert({
     job_id: jobId,
     supplier_item_id: supplierItemId,
     quantity,
@@ -57,7 +57,7 @@ export async function addJobMaterial(
 /** Update quantity for a job material */
 export async function updateJobMaterialQty(id: string, quantity: number): Promise<void> {
   const { error } = await supabase
-    .from("job_materials")
+    .from("prod_job_materials")
     .update({ quantity } as any)
     .eq("id", id);
   if (error) throw error;
@@ -65,6 +65,6 @@ export async function updateJobMaterialQty(id: string, quantity: number): Promis
 
 /** Remove a material from a job */
 export async function deleteJobMaterial(id: string): Promise<void> {
-  const { error } = await supabase.from("job_materials").delete().eq("id", id);
+  const { error } = await supabase.from("prod_job_materials").delete().eq("id", id);
   if (error) throw error;
 }

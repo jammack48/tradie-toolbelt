@@ -82,7 +82,7 @@ function parseCSVLine(line: string): string[] {
 }
 
 /**
- * Import parsed price book rows into supplier_items for a given supplier.
+ * Import parsed price book rows into prod_supplier_items for a given supplier.
  * Clears existing items for this supplier first, then bulk inserts.
  */
 export async function importPriceBook(supplierId: string, rows: PriceBookRow[]): Promise<number> {
@@ -90,7 +90,7 @@ export async function importPriceBook(supplierId: string, rows: PriceBookRow[]):
 
   // Delete existing items for this supplier
   const { error: delError } = await supabase
-    .from("supplier_items")
+    .from("prod_supplier_items")
     .delete()
     .eq("supplier_id", supplierId);
   if (delError) throw delError;
@@ -110,13 +110,13 @@ export async function importPriceBook(supplierId: string, rows: PriceBookRow[]):
   let imported = 0;
   for (let i = 0; i < inserts.length; i += BATCH) {
     const chunk = inserts.slice(i, i + BATCH);
-    const { error } = await supabase.from("supplier_items").insert(chunk as any);
+    const { error } = await supabase.from("prod_supplier_items").insert(chunk as any);
     if (error) throw error;
     imported += chunk.length;
   }
 
   const { error: supplierUpdateError } = await supabase
-    .from("suppliers")
+    .from("prod_suppliers")
     .update({
       last_pricebook_uploaded_at: new Date().toISOString(),
       last_pricebook_row_count: imported,
