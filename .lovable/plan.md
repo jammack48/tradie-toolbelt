@@ -1,25 +1,41 @@
 
 
-## Plan: Add AI Suggest to Job Sheet Steps
+## Plan: Migrate to Company-Based Multi-User Architecture
 
-The "AI Suggest" button and edge function already exist in the Scope tab but are missing from the two close-out flows where you actually write job notes. The screenshot shows the "Job Sheet" step in the sole trader close-out flow — that's where you need it.
+All tables have been renamed and RLS now uses `company_id` instead of `user_id`. The app currently references old table names and filters by `user_id`, so production data appears empty.
 
-### What changes
+### Changes
 
-**1. `src/components/job/SoleTraderCloseOutFlow.tsx`** — Job Notes step (line ~362)
-- Add an "AI Suggest" button next to the "What was done on this job?" label (or alongside Dictate)
-- On press, call `supabase.functions.invoke("ai-suggest-description", { body: { jobTitle: job.jobName, client: job.client, address: job.address } })`
-- Replace/append the jobSheet textarea content with the AI response
-- Show a loading spinner while generating
+**1. `src/lib/modeTable.ts`** — Flip naming convention
+- `{base}_demo` → `demo_{base}`
+- `{base}_prod` → `prod_{base}`
 
-**2. `src/components/job/JobCompletionFlow.tsx`** — Same change on its jobsheet step (~line 394)
-- Add the same AI Suggest button and logic
+**2. `src/services/supplierService.ts`** — Rename tables, clean interface
+- `"suppliers"` → `"prod_suppliers"` (6 occurrences)
+- `"supplier_items"` → `"prod_supplier_items"` (2 occurrences)
+- Remove `user_id` from `Supplier` interface (keep field in DB for audit, just remove from TypeScript type since it's no longer used for filtering)
 
-**3. `supabase/functions/ai-suggest-description/index.ts`** — Update prompt
-- Change from a "scope of works" writer to a "job completion notes" writer
-- Given a job title like "Solar Install", generate practical completion notes like: "Arrived on site. Spoke with customer regarding installation location. Installed solar panel system as per requirements. Tested and commissioned system, confirmed operational. Cleaned up site."
-- Keep it trade-focused, plain text, Australian language
+**3. `src/services/supplierImportService.ts`** — Rename tables
+- `"supplier_items"` → `"prod_supplier_items"` (2 occurrences)
+- `"suppliers"` → `"prod_suppliers"` (1 occurrence)
 
-### No new files needed
-The edge function already exists and handles the API call. Just need to update the prompt and add the button to the two close-out flows.
+**4. `src/services/jobMaterialsService.ts`** — Rename tables
+- `"job_materials"` → `"prod_job_materials"` (4 occurrences)
+- Join references `supplier_items` → `prod_supplier_items` and `suppliers` → `prod_suppliers` in the `.select()` join syntax
+
+**5. `src/contexts/UserSettingsContext.tsx`** — Rename table, fix upsert
+- `"user_settings"` → `"prod_user_settings"` (2 occurrences)
+- **Remove** `.eq("user_id", user.id)` from the SELECT query (RLS handles it)
+- **Keep** `user_id: user.id` in the upsert payload (it's part of the composite unique key `company_id + user_id`)
+- **Do NOT** pass `company_id` (DB default handles it)
+
+### Files NOT changed (auto-fixed by step 1)
+These all use `getTable()`, so the prefix flip fixes them automatically:
+- `src/services/dbDemoService.ts`
+- `src/services/customerImportService.ts`
+- `src/services/variationsService.ts`
+- `src/services/servicingService.ts`
+
+### No backend changes needed
+The FastAPI backend passes the auth token — RLS handles everything server-side too.
 

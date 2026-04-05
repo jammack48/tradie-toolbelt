@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ThresholdProvider } from "@/contexts/ThresholdContext";
 import { NotificationStyleProvider } from "@/contexts/NotificationStyleContext";
@@ -11,7 +11,10 @@ import { ToolbarPositionProvider } from "@/contexts/ToolbarPositionContext";
 import { TutorialProvider } from "@/contexts/TutorialContext";
 import { AppModeProvider, useAppMode } from "@/contexts/AppModeContext";
 import { DemoDataProvider } from "@/contexts/DemoDataContext";
-import { useState, useEffect } from "react";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { UserSettingsProvider, useUserSettings } from "@/contexts/UserSettingsContext";
+import { useEffect, useState } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { JobPrefixProvider } from "@/contexts/JobPrefixContext";
 import { BackendProvider } from "@/contexts/BackendContext";
 import { BackendLogPanel } from "@/components/BackendLogPanel";
@@ -43,38 +46,49 @@ import SmsTemplatesPage from "./pages/SmsTemplatesPage";
 import InvoicePage from "./pages/InvoicePage";
 
 import NotFound from "./pages/NotFound";
+import LoginPage from "./pages/LoginPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SplashPage from "./pages/SplashPage";
-import { OnboardingCarousel } from "./components/OnboardingCarousel";
 
 const queryClient = new QueryClient();
 
 function AppLayout() {
   const { mode, isWorkMode, isTimesheetOnlyMode, isIntroMode, clearMode } = useAppMode();
-  const [splashDismissed, setSplashDismissed] = useState(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(() => {
-    return localStorage.getItem("onboardingSeen") === "true";
-  });
+  const { user, loading, isDemo, setIsDemo } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+  const { settings, loading: settingsLoading } = useUserSettings();
+  const { setTheme, setIsDark } = useTheme();
 
-  // Each fresh browser session starts at splash → mode picker (clears cached mode)
   useEffect(() => {
-    const started = sessionStorage.getItem("appSessionStarted");
-    if (!started) {
-      sessionStorage.setItem("appSessionStarted", "true");
+    if (settingsLoading) return;
+    setTheme(settings.theme);
+    setIsDark(settings.isDark);
+  }, [settingsLoading, settings.theme, settings.isDark, setTheme, setIsDark]);
+
+  useEffect(() => {
+    if (!user && !isDemo) {
       clearMode();
     }
-  }, [clearMode]);
+  }, [user, isDemo, clearMode]);
 
-  if (!splashDismissed) {
-    return <SplashPage onStart={() => setSplashDismissed(true)} />;
+  // Show loading spinner while auth initializes
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
   }
 
-  if (!onboardingCompleted) {
+  // Unauthenticated: show SplashPage or LoginPage
+  if (!user && !isDemo) {
+    if (showLogin) {
+      return <LoginPage onBack={() => setShowLogin(false)} />;
+    }
     return (
-      <OnboardingCarousel 
-        onComplete={() => {
-          localStorage.setItem("onboardingSeen", "true");
-          setOnboardingCompleted(true);
-        }} 
+      <SplashPage
+        onSignIn={() => setShowLogin(true)}
+        onDemo={() => setIsDemo(true)}
       />
     );
   }
@@ -114,6 +128,7 @@ function AppLayout() {
                 <Route path="/work-hub" element={<WorkHub />} />
                 <Route path="/timesheet" element={<WorkTimesheet />} />
                 <Route path="/schedule" element={<SchedulePage />} />
+                <Route path="/quote/:id" element={<QuotePage />} />
                 <Route path="*" element={<WorkHome />} />
               </>
             )
@@ -147,6 +162,8 @@ function AppLayout() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
+      <AuthProvider>
+      <UserSettingsProvider>
       <BackendProvider>
       <JobPrefixProvider>
       <AppModeProvider>
@@ -160,7 +177,10 @@ const App = () => (
           <BackendLogPanel />
           <BrowserRouter>
             <ScrollToTop />
-            <AppLayout />
+            <Routes>
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="*" element={<AppLayout />} />
+            </Routes>
           </BrowserRouter>
         </TooltipProvider>
       </NotificationStyleProvider>
@@ -171,6 +191,8 @@ const App = () => (
       </AppModeProvider>
       </JobPrefixProvider>
       </BackendProvider>
+      </UserSettingsProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

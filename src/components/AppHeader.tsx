@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Wrench, Settings as SettingsIcon, GraduationCap, Shield, LayoutGrid, ChevronDown } from "lucide-react";
+import { Wrench, Settings as SettingsIcon, GraduationCap, Shield, LayoutGrid, ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThemePicker } from "@/components/ThemePicker";
@@ -8,14 +8,37 @@ import { BackendStatus } from "@/components/BackendStatus";
 import { useTutorial } from "@/contexts/TutorialContext";
 import { useAppMode } from "@/contexts/AppModeContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToolbarPosition } from "@/contexts/ToolbarPositionContext";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+function LogoutButton() {
+  const { user, logout, isDemo, setIsDemo } = useAuth();
+  if (!user && !isDemo) return null;
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={async () => {
+        sessionStorage.clear();
+        await logout();
+        setIsDemo(false);
+      }}
+      className="h-9 w-9 p-0 rounded-lg text-muted-foreground hover:bg-accent"
+      title="Sign out"
+    >
+      <LogOut className="w-5 h-5" />
+    </Button>
+  );
+}
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -24,6 +47,12 @@ export function AppHeader() {
   const { isWorkMode, isSoleTrader, isTimesheetOnlyMode, clearMode, setMode } = useAppMode();
   const isMobile = useIsMobile();
   const { position, cyclePosition } = useToolbarPosition();
+  const { isDemo, setIsDemo } = useAuth();
+  const { settings } = useUserSettings();
+  const showAllModesForDev = import.meta.env.DEV;
+  const canShowToolsMode = settings.showToolsMode || showAllModesForDev;
+  const canShowEmployeeMode = settings.showEmployeeMode || showAllModesForDev;
+  const canShowTimesheetMode = settings.showTimesheetMode || showAllModesForDev;
   const [showModeHint, setShowModeHint] = useState(true);
 
   useEffect(() => {
@@ -44,6 +73,9 @@ export function AppHeader() {
         <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground/80 truncate hidden min-[360px]:block">
           {isSoleTrader ? "Toolbelt — Solo" : isTimesheetOnlyMode ? "Toolbelt — Timesheet" : isWorkMode ? "Toolbelt — Work" : "Tradie Toolbelt"}
         </h1>
+        <Badge className={cn("hidden sm:inline-flex", isDemo ? "bg-yellow-500/20 text-yellow-700 border-yellow-500/40" : "bg-green-500/20 text-green-700 border-green-500/40")}>
+          {isDemo ? "Demo Mode" : "Production Mode"}
+        </Badge>
       </button>
       <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
         <DropdownMenu onOpenChange={() => setShowModeHint(false)}>
@@ -72,18 +104,25 @@ export function AppHeader() {
             <DropdownMenuItem onClick={() => { setMode("manage"); navigate("/"); }}>
               Manager
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setMode("sole-trader"); navigate("/"); }}>
+            {canShowToolsMode && (<DropdownMenuItem onClick={() => { setMode("sole-trader"); navigate("/"); }}>
               On the Tools
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setTutorialOn(true); setMode("work"); navigate("/"); }}>
-              Employee
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setTutorialOn(false); setMode("timesheet"); navigate("/"); }}>
+            </DropdownMenuItem>)}
+            {canShowEmployeeMode && (
+              <DropdownMenuItem onClick={() => { setTutorialOn(true); setMode("work"); navigate("/"); }}>
+                Employee
+              </DropdownMenuItem>
+            )}
+            {canShowTimesheetMode && (<DropdownMenuItem onClick={() => { setTutorialOn(false); setMode("timesheet"); navigate("/"); }}>
               Timesheet Only
-            </DropdownMenuItem>
+            </DropdownMenuItem>)}
             <DropdownMenuItem onClick={() => { clearMode(); navigate("/"); }}>
               Main Menu
             </DropdownMenuItem>
+            {isDemo && (
+              <DropdownMenuItem onClick={() => { sessionStorage.clear(); clearMode(); setIsDemo(false); navigate("/"); }}>
+                Sign In
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -131,6 +170,7 @@ export function AppHeader() {
         </Button>
         <BackendStatus />
         <ThemePicker />
+        <LogoutButton />
       </div>
     </header>
   );
